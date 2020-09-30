@@ -61,7 +61,7 @@ public class PlayerRigInspector : Editor
 
     rig.simFacade = rig.transform.GetChild(2).GetComponent<SimulatorFacade>();
     rig.linkedAliasSim = rig.transform.GetChild(2).GetComponent<LinkedAliasAssociationCollection>();
-    EditorUtility.SetDirty(target);
+    //EditorUtility.SetDirty(target);
   }
 
   public override void OnInspectorGUI()
