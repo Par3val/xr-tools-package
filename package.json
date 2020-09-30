@@ -1,0 +1,29 @@
+{
+  "name": "com.shadowsoptional.xr-tools",
+  "version": "0.1.0",
+  "displayName": "XR-Tools",
+  "description": "Collection of XR-Tools using VRTK 4",
+  "unity": "2018.1",
+  "unityRelease": "0f1",
+  "keywords": [],
+  "author": {
+    "name": "Zale Bush",
+    "email": "zale@zalebush.com",
+    "url": "zalebush.com"
+  },
+  "type": "library",
+  "scopedRegistries": [
+    {
+      "name": "npmjs",
+      "url": "https://registry.npmjs.org/",
+      "scopes": [
+        "io.extendreality"
+      ]
+    }
+  ],
+  "dependencies": {
+    "io.extendreality.vrtk.prefabs": "1.1.10",
+    "com.unity.xr.legacyinputhelpers": "2.1.2"
+  },
+  "hideInEditor": false
+}
