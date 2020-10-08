@@ -8,7 +8,7 @@ using VRTK.Prefabs.Locomotion.Movement.AxesToVector3;
 using System.Runtime.InteropServices;
 using VRTK.Prefabs.Interactions.Interactors;
 
-[RequireComponent(typeof(BooleanAction))]
+[RequireComponent(typeof(BooleanAction)), ExecuteInEditMode]
 public class InputManager : MonoBehaviour
 {
 
@@ -21,32 +21,11 @@ public class InputManager : MonoBehaviour
 	public InputMapping[] inputMappings;
 	public BooleanAction grabAction;
 	public PlayerRig rig;
-	private void Start()
+
+	public bool eventsOpen;
+
+	public void Awake()
 	{
-		if (!grabAction)
-			grabAction = GetComponent<BooleanAction>();
-		if (GetComponent<InteractorFacade>().GrabAction == null)
-			GetComponent<InteractorFacade>().GrabAction = grabAction;
-
-		foreach (var InputMap in inputMappings)
-		{
-			InputMap.Setup(handedness, gameObject);
-
-			if (InputMap.mapName.Contains("Grab"))
-			{
-				InputMap.Activated.AddListener(GrabActivated);
-				InputMap.Deactivated.AddListener(GrabDeactivated);
-			}
-			//if (InputMap.name.Contains("Move"))
-			//{
-			//  InputMap.Moved2D.AddListener(UpdateMove);
-			//}
-			//if (InputMap.name.Contains("Rotate"))
-			//{
-			//  InputMap.Moved2D.AddListener(UpdateRot);
-			//}
-		}
-
 		string parName = transform.parent.name.Substring(0, 1);
 
 		if (parName == "L")
@@ -55,6 +34,35 @@ public class InputManager : MonoBehaviour
 			handedness = hands.Right;
 		else
 			Debug.Log("Parent Hand Unsure");
+	}
+	private void Start()
+	{
+		if (!grabAction)
+			grabAction = GetComponent<BooleanAction>();
+		if (GetComponent<InteractorFacade>().GrabAction == null)
+			GetComponent<InteractorFacade>().GrabAction = grabAction;
+
+		if (Application.isPlaying)
+		{
+			foreach (var InputMap in inputMappings)
+			{
+				InputMap.Setup(handedness, gameObject);
+
+				if (InputMap.mapName.Contains("Grab"))
+				{
+					InputMap.Activated.AddListener(GrabActivated);
+					InputMap.Deactivated.AddListener(GrabDeactivated);
+				}
+				//if (InputMap.name.Contains("Move"))
+				//{
+				//  InputMap.Moved2D.AddListener(UpdateMove);
+				//}
+				//if (InputMap.name.Contains("Rotate"))
+				//{
+				//  InputMap.Moved2D.AddListener(UpdateRot);
+				//}
+			}
+		}
 	}
 
 	public void GrabActivated()
@@ -153,12 +161,19 @@ public class InputManagerInspector : Editor
 		//Grab Events
 		GUILayout.Space(10);
 
-		GUILayout.Label("Grab Events");
-		Transform grabEvent = manager.transform.GetChild(1).GetChild(1).GetChild(1).GetChild(0);
-		ShowValueEvent(grabEvent.GetComponent<BooleanAction>());
+		manager.eventsOpen = EditorGUILayout.BeginFoldoutHeaderGroup(manager.eventsOpen, "Successfull Grab Events");
+		EditorGUILayout.EndFoldoutHeaderGroup();
+		if (manager.eventsOpen)
+		{
+			Transform grabEvent = manager.transform.GetChild(1).GetChild(1).GetChild(1).GetChild(0);
+			ShowValueEvent(grabEvent.GetComponent<BooleanAction>());
+
+		}
 
 		if (manager.rig && GUILayout.Button($"GOTO: {manager.rig.name}"))
 			MyEditorTools.FocusObject(manager.rig.gameObject);
+
+		GUILayout.Space(10);
 	}
 
 	public void ShowMap(InputMapping map, SerializedProperty property)
