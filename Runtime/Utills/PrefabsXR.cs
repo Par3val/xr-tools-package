@@ -6,7 +6,7 @@ using UnityEngine;
 [ExecuteInEditMode]
 public class PrefabsXR
 {
-	static bool inDev = false;
+	public static bool inDev = false;
 	//may need to auto switch if detects is dev shouldnt be on
 	static string genericPath { get { return inDev ? ("Assets/") : ("Packages/com.shadowsoptional.xr-tools/"); } }
 	public static GameObject GetActionByEnum(InteractibleObject.SecondaryTypes actionType)
@@ -80,19 +80,19 @@ public class PrefabsXR
 		return (GameObject)AssetDatabase.LoadAssetAtPath(genericPath + path, typeof(GameObject));
 	}
 
-	public static GameObject GetPlayerComponent(PlayerRig.PlayerComponents component)
+	public static GameObject GetPlayerComponent(PlayerComponent.PlayerComponents component)
 	{
 		string path = "";
 
 		switch (component)
 		{
-			case PlayerRig.PlayerComponents.Walk:
+			case PlayerComponent.PlayerComponents.Walk:
 				path = "Prefabs/PlayerComponents/Walk.prefab";
 				break;
-			case PlayerRig.PlayerComponents.Teleport:
+			case PlayerComponent.PlayerComponents.Teleport:
 				//path = "Prefabs/PlayerComponents/.prefab";
 				break;
-			case PlayerRig.PlayerComponents.Rotate:
+			case PlayerComponent.PlayerComponents.Rotate:
 				path = "Prefabs/PlayerComponents/Rotate.prefab";
 				break;
 		}
@@ -101,5 +101,29 @@ public class PrefabsXR
 			return null;
 
 		return (GameObject)AssetDatabase.LoadAssetAtPath(genericPath + path, typeof(GameObject));
+	}
+}
+
+public class XRToolsEditor : EditorWindow
+{
+	bool inDev;
+	[MenuItem("Component/XR-Tools/Open Window")]
+	public static void OpenXRToolsEditor()
+	{
+		XRToolsEditor window = CreateInstance<XRToolsEditor>();
+		window.minSize = new Vector2(115, 23);
+		window.maxSize= new Vector2(115, 23);
+		//window.Init();
+		window.Show();
+	}
+
+	public void OnGUI()
+	{
+		MyEditorTools.BeginHorizontal();
+		EditorGUILayout.LabelField($"In devmode:", GUILayout.Width(73));
+		if (GUILayout.Button($"{PrefabsXR.inDev}", GUILayout.Width(115 - 73)))
+			inDev = !inDev;
+
+		PrefabsXR.inDev = inDev;
 	}
 }

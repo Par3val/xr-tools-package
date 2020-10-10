@@ -6,10 +6,9 @@ using VRTK.Prefabs.CameraRig.TrackedAlias;
 using VRTK.Prefabs.CameraRig.UnityXRCameraRig;
 using Zinnia.Tracking.CameraRig;
 using VRTK.Prefabs.CameraRig.SimulatedCameraRig;
-using System;
 using Zinnia.Data.Operation.Mutation;
 
-[ExecuteInEditMode, Serializable]
+[ExecuteInEditMode, System.Serializable]
 public class PlayerRig : MonoBehaviour
 {
 	public TrackedAliasFacade alias;
@@ -25,14 +24,14 @@ public class PlayerRig : MonoBehaviour
 
 
 	#region EditorBools
+
 	public bool isSim;
 	public bool leftHandOpen;
 	public bool rightHandOpen;
 
-	public enum PlayerComponents { Walk, Teleport, Rotate }
 	//PlayerComponentsBools
-	public GameObject walk;
-	public GameObject rotate;
+	public PlayerComponent walk;
+	public PlayerComponent rotate;
 
 	#endregion
 
@@ -73,13 +72,19 @@ public class PlayerRigInspector : Editor
 		rig.leftHand = rig.alias.LeftControllerAlias.GetComponentInChildren<InputManager>();
 		rig.rightHand = rig.alias.RightControllerAlias.GetComponentInChildren<InputManager>();
 
-		if (!Enum.IsDefined(typeof(InputManager.hands), rig.leftHand.handedness))
+		if (!System.Enum.IsDefined(typeof(InputManager.hands), rig.leftHand.handedness))
 			rig.leftHand.Awake();
 
-		if (!Enum.IsDefined(typeof(InputManager.hands), rig.rightHand.handedness))
+		if (!System.Enum.IsDefined(typeof(InputManager.hands), rig.rightHand.handedness))
 			rig.rightHand.Awake();
-	}
 
+		if (PrefabUtility.GetPrefabType(rig.gameObject) == PrefabType.PrefabInstance)
+		{
+			PrefabUtility.UnpackPrefabInstance(rig.gameObject, PrefabUnpackMode.Completely, InteractionMode.AutomatedAction);
+			return;
+		}
+	}
+	
 	public override void OnInspectorGUI()
 	{
 		//base.OnInspectorGUI();
@@ -103,7 +108,6 @@ public class PlayerRigInspector : Editor
 		GUILayout.Label("PlayerComponents", EditorStyles.boldLabel);
 
 		ShowPlayerComponents();
-
 	}
 
 	public void ShowHand(ref bool handBool, InputManager hand)
@@ -135,14 +139,14 @@ public class PlayerRigInspector : Editor
 		if (!rig.walk)
 			if (GUILayout.Button("Add Walk"))
 			{
-				rig.walk = (GameObject)PrefabUtility.InstantiatePrefab(PrefabsXR.GetPlayerComponent(PlayerRig.PlayerComponents.Walk), rig.transform);
+				rig.walk = ((GameObject)PrefabUtility.InstantiatePrefab(PrefabsXR.GetPlayerComponent(PlayerComponent.PlayerComponents.Walk), rig.transform)).GetComponent<PlayerComponent>();
 				rig.walk.transform.GetComponentInChildren<TransformPositionMutator>().Target = rig.gameObject;
 				rig.walk.transform.GetComponentInChildren<TransformPositionMutator>().FacingDirection = rig.alias.HeadsetAlias.gameObject;
 			}
 		if (!rig.rotate)
 			if (GUILayout.Button("Add Rotate"))
 			{
-				rig.rotate = (GameObject)PrefabUtility.InstantiatePrefab(PrefabsXR.GetPlayerComponent(PlayerRig.PlayerComponents.Rotate), rig.transform);
+				rig.rotate = ((GameObject)PrefabUtility.InstantiatePrefab(PrefabsXR.GetPlayerComponent(PlayerComponent.PlayerComponents.Rotate), rig.transform)).GetComponent<PlayerComponent>();
 				rig.rotate.transform.GetComponentInChildren<TransformEulerRotationMutator>().Target = rig.gameObject;
 				rig.rotate.transform.GetComponentInChildren<TransformEulerRotationMutator>().Origin = rig.alias.HeadsetAlias.gameObject;
 			}
@@ -158,8 +162,8 @@ public class PlayerRigInspector : Editor
 			|| rig.linkedAliasSim != null
 			|| rig.leftHand != null
 			|| rig.rightHand != null
-			|| Enum.IsDefined(typeof(InputManager.hands), rig.leftHand.handedness)
-			|| Enum.IsDefined(typeof(InputManager.hands), rig.rightHand.handedness);
+			|| System.Enum.IsDefined(typeof(InputManager.hands), rig.leftHand.handedness)
+			|| System.Enum.IsDefined(typeof(InputManager.hands), rig.rightHand.handedness);
 	}
 }
 
