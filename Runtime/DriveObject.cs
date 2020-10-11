@@ -9,7 +9,7 @@ using Zinnia.Data.Type;
 using Zinnia.Data.Type.Transformation.Conversion;
 using UnityEditor;
 
-[ExecuteInEditMode]
+[ExecuteInEditMode, System.Serializable]
 public class DriveObject : MonoBehaviour
 {
   public enum DriveType { Directional, Rotational }
@@ -35,6 +35,7 @@ public class DriveObject : MonoBehaviour
   public List<bool> ValueEventsBools;
 
   #endregion
+
 
   [System.Serializable]
   public class ValueEvent
@@ -128,7 +129,7 @@ public class DriveObject : MonoBehaviour
   {
     if (dirDriveFacade)
       DestroyImmediate(dirDriveFacade.gameObject);
-    else if (rotDriveFacade)
+    if (rotDriveFacade)
       DestroyImmediate(rotDriveFacade.gameObject);
 
     GameObject prefab = PrefabsXR.GetDrive(driveType, interactType);
@@ -140,6 +141,8 @@ public class DriveObject : MonoBehaviour
       dirDriveFacade = newDrive.GetComponent<DirectionalDriveFacade>();
     else
       rotDriveFacade = newDrive.GetComponent<RotationalDriveFacade>();
+
+
 
     OnEnable();
   }
@@ -238,9 +241,18 @@ public class DriveObjectInspector : Editor
 
   float previewValue = 0.5f;
 
+	private void OnEnable()
+  {
+    drive = (DriveObject)target;
 
+		if (PrefabUtility.GetPrefabType(target) == PrefabType.PrefabInstance)
+		{
+			PrefabUtility.UnpackPrefabInstance(drive.gameObject, PrefabUnpackMode.Completely, InteractionMode.AutomatedAction);
+			return;
+		}
+	}
 
-  public void OnSceneGUI()
+	public void OnSceneGUI()
   {
     drive = (DriveObject)target;
 

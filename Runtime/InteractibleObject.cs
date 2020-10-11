@@ -54,8 +54,8 @@ public class InteractibleObject : MonoBehaviour
   {
     if (PrefabUtility.IsPartOfAnyPrefab(gameObject))
     {
-      PrefabUtility.UnpackPrefabInstance(gameObject, PrefabUnpackMode.OutermostRoot, InteractionMode.AutomatedAction);
-    }
+			PrefabUtility.UnpackPrefabInstance(gameObject, PrefabUnpackMode.OutermostRoot, InteractionMode.AutomatedAction);
+		}
   }
 
   public void SwitchSecondaryAction()

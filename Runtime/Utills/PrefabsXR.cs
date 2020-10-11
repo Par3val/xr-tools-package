@@ -62,7 +62,7 @@ public class PrefabsXR
 				path = "Prefabs/Drive/DirectionalTransformDrive.prefab";
 
 			else if (driveType == DriveObject.DriveType.Rotational)
-				path = "Prefabs / Drive / RotationalTransformDrive.prefab";
+				path = "Prefabs/Drive/RotationalTransformDrive.prefab";
 		}
 
 		else if (interactType == DriveObject.InteractType.Joint)
