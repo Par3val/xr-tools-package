@@ -28,12 +28,69 @@ public class PlayerRig : MonoBehaviour
 	public bool isSim;
 	public bool leftHandOpen;
 	public bool rightHandOpen;
-
-	//PlayerComponentsBools
-	public PlayerComponent walk;
-	public PlayerComponent rotate;
+	public bool playerComponentsOpen = true;
 
 	#endregion
+
+	//PlayerComponentsBools { Walk, Teleport, Rotate, Climb, PhysicalBody, Other }
+	public PlayerComponent walk;
+	public PlayerComponent rotate;
+	public PlayerComponent teleport;
+	public PlayerComponent climb;
+	public PlayerComponent physicalBody;
+
+	public PlayerComponent GetActivePlayerComponent(PlayerComponent.ComponentTypes type)
+	{
+		switch (type)
+		{
+			case PlayerComponent.ComponentTypes.Walk:
+				return walk;
+			case PlayerComponent.ComponentTypes.Teleport:
+				return teleport;
+			case PlayerComponent.ComponentTypes.Rotate:
+				return rotate;
+			case PlayerComponent.ComponentTypes.Climb:
+				return climb;
+			case PlayerComponent.ComponentTypes.PhysicalBody:
+				return physicalBody;
+		}
+
+		return null;
+	}
+
+	public PlayerComponent[] GetActivePlayerComponents()
+	{
+		PlayerComponent[] tempArray = new PlayerComponent[5];
+
+		tempArray[0] = walk;
+		tempArray[1] = rotate;
+		tempArray[2] = teleport;
+		tempArray[3] = climb;
+		tempArray[4] = physicalBody;
+
+		return tempArray;
+	}
+	public void SetPlayerComponentsInRig(PlayerComponent component)
+	{
+		switch (component.type)
+		{
+			case PlayerComponent.ComponentTypes.Walk:
+				walk = component;
+				break;
+			case PlayerComponent.ComponentTypes.Teleport:
+				teleport = component;
+				break;
+			case PlayerComponent.ComponentTypes.Rotate:
+				rotate = component;
+				break;
+			case PlayerComponent.ComponentTypes.Climb:
+				climb = component;
+				break;
+			case PlayerComponent.ComponentTypes.PhysicalBody:
+				physicalBody = component;
+				break;
+		}
+	}
 
 	public void SwitchRigs()
 	{
@@ -84,7 +141,7 @@ public class PlayerRigInspector : Editor
 			return;
 		}
 	}
-	
+
 	public override void OnInspectorGUI()
 	{
 		//base.OnInspectorGUI();
@@ -104,8 +161,6 @@ public class PlayerRigInspector : Editor
 			rig.SwitchRigs();
 		}
 
-		GUILayout.Space(10f);
-		GUILayout.Label("PlayerComponents", EditorStyles.boldLabel);
 
 		ShowPlayerComponents();
 	}
@@ -136,20 +191,37 @@ public class PlayerRigInspector : Editor
 
 	public void ShowPlayerComponents()
 	{
-		if (!rig.walk)
-			if (GUILayout.Button("Add Walk"))
+		GUILayout.Space(10f);
+		rig.playerComponentsOpen = EditorGUILayout.BeginFoldoutHeaderGroup(rig.playerComponentsOpen, $"PlayerComponents");
+		EditorGUILayout.EndFoldoutHeaderGroup();
+		EditorGUI.indentLevel++;
+		
+		if (rig.playerComponentsOpen)
+		{
+
+			foreach (PlayerComponent.ComponentTypes type in System.Enum.GetValues(typeof(PlayerComponent.ComponentTypes)))
 			{
-				rig.walk = ((GameObject)PrefabUtility.InstantiatePrefab(PrefabsXR.GetPlayerComponent(PlayerComponent.PlayerComponents.Walk), rig.transform)).GetComponent<PlayerComponent>();
-				rig.walk.transform.GetComponentInChildren<TransformPositionMutator>().Target = rig.gameObject;
-				rig.walk.transform.GetComponentInChildren<TransformPositionMutator>().FacingDirection = rig.alias.HeadsetAlias.gameObject;
+				var tempComponent = rig.GetActivePlayerComponent(type);
+				if (tempComponent != null)
+					tempComponent.ShowData();
+				else
+				{
+					if (GUILayout.Button($"Add {type}"))
+					{
+						var component = PlayerComponent.CreateComponent(type, rig.transform);
+						if (component != null)
+						{
+							rig.SetPlayerComponentsInRig(component);
+							component.Setup(rig);
+						}
+						else
+							Debug.LogError($"No Component for {type}");
+					}
+				}
 			}
-		if (!rig.rotate)
-			if (GUILayout.Button("Add Rotate"))
-			{
-				rig.rotate = ((GameObject)PrefabUtility.InstantiatePrefab(PrefabsXR.GetPlayerComponent(PlayerComponent.PlayerComponents.Rotate), rig.transform)).GetComponent<PlayerComponent>();
-				rig.rotate.transform.GetComponentInChildren<TransformEulerRotationMutator>().Target = rig.gameObject;
-				rig.rotate.transform.GetComponentInChildren<TransformEulerRotationMutator>().Origin = rig.alias.HeadsetAlias.gameObject;
-			}
+		}
+
+		EditorGUI.indentLevel--;
 	}
 
 	public bool NullRefrenceRisk()

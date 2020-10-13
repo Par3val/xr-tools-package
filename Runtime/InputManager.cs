@@ -169,9 +169,9 @@ public class InputManagerInspector : Editor
 			ShowValueEvent(grabEvent.GetComponent<BooleanAction>());
 
 		}
-
-		if (manager.rig && GUILayout.Button($"GOTO: {manager.rig.name}"))
-			MyEditorTools.FocusObject(manager.rig.gameObject);
+		if (Selection.activeGameObject == manager.gameObject && manager.rig)
+			if (GUILayout.Button($"GOTO: {manager.rig.name}"))
+				MyEditorTools.FocusObject(manager.rig.gameObject);
 
 		GUILayout.Space(10);
 	}

@@ -2820,6 +2820,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   type: 2
+  rig: {fileID: 0}
 --- !u!114 &4047200678487042237
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2950,7 +2951,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 34b798c2d58bdb9478ee2a2889077dee, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  axisUsageType: 0
+  axisUsageType: 1
   lateralAxis: {fileID: 5564747672586525961}
   longitudinalAxis: {fileID: 5849700959417207858}
   lateralSpeedMultiplier: 45

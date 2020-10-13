@@ -73,6 +73,8 @@ public class PrefabsXR
 			else if (driveType == DriveObject.DriveType.Rotational)
 				path = "Prefabs/Drive/RotationallJointDrive.prefab";
 		}
+		else
+			NoPathError(interactType);
 
 		if (path == "")
 			return null;
@@ -80,20 +82,27 @@ public class PrefabsXR
 		return (GameObject)AssetDatabase.LoadAssetAtPath(genericPath + path, typeof(GameObject));
 	}
 
-	public static GameObject GetPlayerComponent(PlayerComponent.PlayerComponents component)
+	public static GameObject GetPlayerComponent(PlayerComponent.ComponentTypes component)
 	{
 		string path = "";
 
 		switch (component)
 		{
-			case PlayerComponent.PlayerComponents.Walk:
+			case PlayerComponent.ComponentTypes.Walk:
 				path = "Prefabs/PlayerComponents/Walk.prefab";
 				break;
-			case PlayerComponent.PlayerComponents.Teleport:
+			case PlayerComponent.ComponentTypes.Teleport:
+				NoPathError(component);
 				//path = "Prefabs/PlayerComponents/.prefab";
 				break;
-			case PlayerComponent.PlayerComponents.Rotate:
+			case PlayerComponent.ComponentTypes.Rotate:
 				path = "Prefabs/PlayerComponents/Rotate.prefab";
+				break;
+			case PlayerComponent.ComponentTypes.Climb:
+				path = "Prefabs/PlayerComponents/Climb.prefab";
+				break;
+			case PlayerComponent.ComponentTypes.PhysicalBody:
+				path = "Prefabs/PlayerComponents/BodyRepresentation.prefab";
 				break;
 		}
 
@@ -101,6 +110,11 @@ public class PrefabsXR
 			return null;
 
 		return (GameObject)AssetDatabase.LoadAssetAtPath(genericPath + path, typeof(GameObject));
+	}
+
+	static void NoPathError(object issue)
+	{
+		Debug.LogError($"No Path for {issue}");
 	}
 }
 
@@ -119,11 +133,15 @@ public class XRToolsEditor : EditorWindow
 
 	public void OnGUI()
 	{
+		GUIStyle activeStyle = new GUIStyle(EditorStyles.label);
+		activeStyle.normal.textColor = Color.green;
+		
 		MyEditorTools.BeginHorizontal();
-		EditorGUILayout.LabelField($"In devmode:", GUILayout.Width(73));
+
+		EditorGUILayout.LabelField($"In devmode:", inDev ? activeStyle : EditorStyles.label, GUILayout.Width(73));
 		if (GUILayout.Button($"{PrefabsXR.inDev}", GUILayout.Width(115 - 73)))
 			inDev = !inDev;
 
-		PrefabsXR.inDev = inDev;
+		PrefabsXR.inDev = inDev;MyEditorTools.EndHorizontal();
 	}
 }
