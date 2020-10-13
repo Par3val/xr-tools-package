@@ -7,6 +7,7 @@ using VRTK.Prefabs.CameraRig.UnityXRCameraRig;
 using Zinnia.Tracking.CameraRig;
 using VRTK.Prefabs.CameraRig.SimulatedCameraRig;
 using Zinnia.Data.Operation.Mutation;
+using Zinnia.Tracking.Collision.Active.Operation.Extraction;
 
 [ExecuteInEditMode, System.Serializable]
 public class PlayerRig : MonoBehaviour
@@ -105,6 +106,12 @@ public class PlayerRig : MonoBehaviour
 			alias.CameraRigs.NonSubscribableElements[1].gameObject.SetActive(false);
 		}
 	}
+
+	public void CanMove(bool canMove)
+	{
+		if (walk)
+			walk.gameObject.SetActive(canMove);
+	}
 }
 
 #if UNITY_EDITOR
@@ -198,22 +205,20 @@ public class PlayerRigInspector : Editor
 		
 		if (rig.playerComponentsOpen)
 		{
-
 			foreach (PlayerComponent.ComponentTypes type in System.Enum.GetValues(typeof(PlayerComponent.ComponentTypes)))
 			{
 				var tempComponent = rig.GetActivePlayerComponent(type);
+
 				if (tempComponent != null)
 					tempComponent.ShowData();
 				else
 				{
 					if (GUILayout.Button($"Add {type}"))
 					{
-						var component = PlayerComponent.CreateComponent(type, rig.transform);
+						var component = PlayerComponent.CreateComponent(type, rig);
+
 						if (component != null)
-						{
 							rig.SetPlayerComponentsInRig(component);
-							component.Setup(rig);
-						}
 						else
 							Debug.LogError($"No Component for {type}");
 					}

@@ -9,6 +9,7 @@ using VRTK.Prefabs.Locomotion.BodyRepresentation;
 using VRTK.Prefabs.Locomotion.Movement.AxesToVector3;
 using VRTK.Prefabs.Locomotion.Movement.Climb;
 using Zinnia.Data.Operation.Mutation;
+using UnityEditor.Events;
 
 [ExecuteInEditMode, System.Serializable]
 public class PlayerComponent : MonoBehaviour
@@ -27,15 +28,16 @@ public class PlayerComponent : MonoBehaviour
 	bool smoothTurn = false;
 	int turnAmount = 45;
 
-	public static PlayerComponent CreateComponent(ComponentTypes _type, Transform parent)
+	public static PlayerComponent CreateComponent(ComponentTypes _type, PlayerRig _rig)
 	{
 		var tempObject = PrefabsXR.GetPlayerComponent(_type);
 
 		if (!tempObject)
 			return null;
 
-		var instantiatedObject = (GameObject)PrefabUtility.InstantiatePrefab(tempObject, parent);
-		return instantiatedObject.GetComponent<PlayerComponent>();
+		var instantiatedObject = ((GameObject)PrefabUtility.InstantiatePrefab(tempObject, _rig.transform)).GetComponent<PlayerComponent>();
+		instantiatedObject.Setup(_rig);
+		return instantiatedObject;
 	}
 
 	public void Setup(PlayerRig _rig)
@@ -107,12 +109,16 @@ public class PlayerComponent : MonoBehaviour
 	}
 	void SetupClimb()
 	{
-		PlayerComponent tempBody = CreateComponent(ComponentTypes.PhysicalBody, rig.transform);
-		rig.SetPlayerComponentsInRig(tempBody);
-		tempBody.Setup(rig);
+		if (!rig.physicalBody)
+		{
+			PlayerComponent tempBody = CreateComponent(ComponentTypes.PhysicalBody, rig);
+			rig.SetPlayerComponentsInRig(tempBody);
+		}
+		
+		GetComponent<ClimbFacade>().BodyRepresentationFacade = rig.physicalBody.GetComponent<BodyRepresentationFacade>();
 
-		GetComponent<ClimbFacade>().BodyRepresentationFacade = tempBody.GetComponent<BodyRepresentationFacade>();
-		//turn on/off gravity
+		UnityEventTools.AddBoolPersistentListener(GetComponent<ClimbFacade>().ClimbStarted, new UnityEngine.Events.UnityAction<bool>(rig.CanMove), false);
+		UnityEventTools.AddBoolPersistentListener(GetComponent<ClimbFacade>().ClimbStopped, new UnityEngine.Events.UnityAction<bool>(rig.CanMove), true);
 	}
 	void SetupPhysicalBody()
 	{
@@ -166,3 +172,11 @@ public class PlayerComponent : MonoBehaviour
 	}
 	//#endif
 }
+
+//if (!rig.climb)
+//	CreateComponent(ComponentTypes.Climb, rig);
+//else
+//{
+//	UnityEventTools.AddBoolPersistentListener(rig.climb.GetComponent<ClimbFacade>().ClimbStarted, new UnityEngine.Events.UnityAction<bool>(rig.CanMove), false);
+//	UnityEventTools.AddBoolPersistentListener(rig.climb.GetComponent<ClimbFacade>().ClimbStopped, new UnityEngine.Events.UnityAction<bool>(rig.CanMove), true);
+//}
