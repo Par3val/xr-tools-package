@@ -116,6 +116,32 @@ public class PrefabsXR
 	{
 		Debug.LogError($"No Path for {issue}");
 	}
+
+	#region UpdatePackage
+
+	static AddRequest Request;
+
+	[MenuItem("Component/XR-Tools/Update Package")]
+	public static void UpdatePackage()
+	{
+		Request = Client.Add("https://github.com/Par3val/xr-tools-package.git");
+		EditorApplication.update += Progress;
+	}
+
+	static void Progress()
+	{
+		if (Request.IsCompleted)
+		{
+			if (Request.Status == StatusCode.Success)
+				Debug.Log("Installed: " + Request.Result.packageId);
+			else if (Request.Status >= StatusCode.Failure)
+				Debug.Log(Request.Error.message);
+
+			EditorApplication.update -= Progress;
+		}
+	}
+
+	#endregion
 }
 
 public class XRToolsEditor : EditorWindow
@@ -126,7 +152,7 @@ public class XRToolsEditor : EditorWindow
 	{
 		XRToolsEditor window = CreateInstance<XRToolsEditor>();
 		window.minSize = new Vector2(115, 23);
-		window.maxSize= new Vector2(115, 23);
+		window.maxSize = new Vector2(115, 23);
 		//window.Init();
 		window.Show();
 	}
@@ -135,13 +161,13 @@ public class XRToolsEditor : EditorWindow
 	{
 		GUIStyle activeStyle = new GUIStyle(EditorStyles.label);
 		activeStyle.normal.textColor = Color.green;
-		
+
 		MyEditorTools.BeginHorizontal();
 
 		EditorGUILayout.LabelField($"In devmode:", inDev ? activeStyle : EditorStyles.label, GUILayout.Width(73));
 		if (GUILayout.Button($"{PrefabsXR.inDev}", GUILayout.Width(115 - 73)))
 			inDev = !inDev;
 
-		PrefabsXR.inDev = inDev;MyEditorTools.EndHorizontal();
+		PrefabsXR.inDev = inDev; MyEditorTools.EndHorizontal();
 	}
 }
