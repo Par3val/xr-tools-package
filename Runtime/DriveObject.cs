@@ -16,6 +16,7 @@ public class DriveObject : MonoBehaviour
 	public enum InteractType { Transfrom, Joint }
 	public DirectionalDriveFacade dirDriveFacade;
 	public RotationalDriveFacade rotDriveFacade;
+
 	public InteractibleObject interactibleObject;
 	public Transform valueEventsParent;
 
@@ -24,6 +25,8 @@ public class DriveObject : MonoBehaviour
 	public List<ValueEvent> valueEvents;
 
 	public float currentValue = 0.5f;
+
+	public bool hasDrive { get { return !(dirDriveFacade == null && rotDriveFacade == null); } }
 
 	#region Bools
 
@@ -126,10 +129,13 @@ public class DriveObject : MonoBehaviour
 						rotDriveFacade.NormalizedValueChanged.AddListener(valueEvent.floatToBoolean.DoTransform);
 				}
 
-			if (driveType == DriveType.Directional)
-				SetPreviewDrivePosition(.5f);
-			if (driveType == DriveType.Rotational)
-				SetPreviewDriveRotation(.5f);
+			if (hasDrive)
+			{
+				if (driveType == DriveType.Directional)
+					SetPreviewDrivePosition(.5f);
+				if (driveType == DriveType.Rotational)
+					SetPreviewDriveRotation(.5f);
+			}
 		}
 	}
 
