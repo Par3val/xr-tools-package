@@ -267,7 +267,7 @@ public class DriveObjectInspector : Editor
 	{
 		drive = (DriveObject)target;
 		
-		if (drive.hasDrive)
+		if (drive.hasDrive && !Application.isPlaying)
 			ShowPreview();
 	}
 
