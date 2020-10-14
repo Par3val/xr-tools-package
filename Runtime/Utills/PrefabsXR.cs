@@ -117,31 +117,6 @@ public class PrefabsXR
 		Debug.LogError($"No Path for {issue}");
 	}
 
-	#region UpdatePackage
-
-	static AddRequest Request;
-
-	[MenuItem("Component/XR-Tools/Update Package")]
-	public static void UpdatePackage()
-	{
-		Request = Client.Add("https://github.com/Par3val/xr-tools-package.git");
-		EditorApplication.update += Progress;
-	}
-
-	static void Progress()
-	{
-		if (Request.IsCompleted)
-		{
-			if (Request.Status == StatusCode.Success)
-				Debug.Log("Installed: " + Request.Result.packageId);
-			else if (Request.Status >= StatusCode.Failure)
-				Debug.Log(Request.Error.message);
-
-			EditorApplication.update -= Progress;
-		}
-	}
-
-	#endregion
 }
 
 public class XRToolsEditor : EditorWindow
@@ -170,4 +145,29 @@ public class XRToolsEditor : EditorWindow
 
 		PrefabsXR.inDev = inDev; MyEditorTools.EndHorizontal();
 	}
+
+	#region UpdatePackage
+	//static UnityEditor.PackageManager.Requests.AddRequest request;
+
+	[MenuItem("Component/XR-Tools/Update Package")]
+	public static void UpdatePackage()
+	{
+		/*request = */Client.Add("https://github.com/Par3val/xr-tools-package.git");
+
+		//	EditorApplication.update += Progress;
+	}
+
+	//static void Progress()
+	//{
+	//	if (request.IsCompleted)
+	//	{
+	//		if (request.Status == StatusCode.Success)
+	//			Debug.Log("Installed: " + request.Result.packageId);
+	//		else if (request.Status >= StatusCode.Failure)
+	//			Debug.Log(request.Error.message);
+
+	//		EditorApplication.update -= Progress;
+	//	}
+	//}
+	#endregion
 }
