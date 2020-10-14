@@ -266,8 +266,9 @@ public class DriveObjectInspector : Editor
 	public void OnSceneGUI()
 	{
 		drive = (DriveObject)target;
-
-		ShowPreview();
+		
+		if (drive.hasDrive)
+			ShowPreview();
 	}
 
 	public override void OnInspectorGUI()
