@@ -246,7 +246,7 @@ public class DriveObjectInspector : Editor
 {
 	private static GUILayoutOption miniButtonWidth = GUILayout.Width(25f);
 	private static GUILayoutOption miniFeildWidth = GUILayout.Width(50f);
-	private static string driveWarning = " ";// WARNING WILL LOSE ALL CHNAGES IF CHANGED";
+	private static string driveWarning = "WARNING WILL LOSE ALL CHNAGES IF CHANGED";
 
 	DriveObject drive;
 
@@ -255,10 +255,10 @@ public class DriveObjectInspector : Editor
 	private void OnEnable()
 	{
 		drive = (DriveObject)target;
-
+		
 		if (PrefabUtility.GetPrefabType(target) == PrefabType.PrefabInstance)
 		{
-			PrefabUtility.UnpackPrefabInstance(drive.gameObject, PrefabUnpackMode.Completely, InteractionMode.AutomatedAction);
+			PrefabUtility.UnpackPrefabInstance(drive.transform.root.gameObject, PrefabUnpackMode.Completely, InteractionMode.AutomatedAction);
 			return;
 		}
 	}
