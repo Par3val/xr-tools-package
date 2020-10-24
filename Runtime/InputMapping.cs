@@ -130,19 +130,19 @@ public class InputMapping
 		switch (typeButton)
 		{
 			case InputTypeButton.ThumbTouch:
-				return isLeft(handedness) ? KeyCode.Joystick2Button16 : KeyCode.Joystick1Button17;
+				return isLeft(handedness) ? KeyCode.JoystickButton16 : KeyCode.JoystickButton17;
 			case InputTypeButton.ThumbClick:
-				return  isLeft(handedness) ? KeyCode.Joystick2Button8 : KeyCode.Joystick1Button9;
+				return  isLeft(handedness) ? KeyCode.JoystickButton8 : KeyCode.JoystickButton9;
 			case InputTypeButton.TopClick:
-				return  isLeft(handedness) ? KeyCode.Joystick2Button3 : KeyCode.Joystick1Button1;
+				return  isLeft(handedness) ? KeyCode.JoystickButton3 : KeyCode.JoystickButton1;
 			case InputTypeButton.TopTouch:
-				return isLeft(handedness) ? KeyCode.Joystick2Button13 : KeyCode.Joystick1Button11;
+				return isLeft(handedness) ? KeyCode.JoystickButton13 : KeyCode.JoystickButton11;
 			case InputTypeButton.BottomClick:
-				return  isLeft(handedness) ? KeyCode.Joystick2Button2 : KeyCode.Joystick1Button0;
+				return  isLeft(handedness) ? KeyCode.JoystickButton2 : KeyCode.JoystickButton0;
 			case InputTypeButton.BottomTouch:
-				return isLeft(handedness) ? KeyCode.Joystick2Button12 : KeyCode.Joystick1Button10;
+				return isLeft(handedness) ? KeyCode.JoystickButton12 : KeyCode.JoystickButton10;
 			case InputTypeButton.Menu:
-				return  isLeft(handedness) ? KeyCode.Joystick2Button6 : KeyCode.Joystick1Button6;
+				return  isLeft(handedness) ? KeyCode.JoystickButton6 : KeyCode.JoystickButton6;
 			default:
 				return KeyCode.Space;
 		}
