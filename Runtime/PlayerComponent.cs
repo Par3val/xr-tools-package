@@ -109,24 +109,48 @@ public class PlayerComponent : MonoBehaviour
 	}
 	void SetupClimb()
 	{
-		if (!rig.physicalBody)
-		{
-			PlayerComponent tempBody = CreateComponent(ComponentTypes.PhysicalBody, rig);
-			rig.SetPlayerComponentsInRig(tempBody);
-		}
-		
-		GetComponent<ClimbFacade>().BodyRepresentationFacade = rig.physicalBody.GetComponent<BodyRepresentationFacade>();
+		GetComponent<BetterClimb>().playArea = rig.transform;
 
-		UnityEventTools.AddBoolPersistentListener(GetComponent<ClimbFacade>().ClimbStarted, new UnityEngine.Events.UnityAction<bool>(rig.CanMove), false);
-		UnityEventTools.AddBoolPersistentListener(GetComponent<ClimbFacade>().ClimbStopped, new UnityEngine.Events.UnityAction<bool>(rig.CanMove), true);
+
+		//if (!rig.physicalBody)
+		//{
+		//	PlayerComponent tempBody = CreateComponent(ComponentTypes.PhysicalBody, rig);
+		//	rig.SetPlayerComponentsInRig(tempBody);
+		//}
+
+		//GetComponent<ClimbFacade>().BodyRepresentationFacade = rig.physicalBody.GetComponent<BodyRepresentationFacade>();
+
+		//UnityEventTools.AddBoolPersistentListener(GetComponent<ClimbFacade>().ClimbStarted, new UnityEngine.Events.UnityAction<bool>(rig.CanMove), false);
+		//UnityEventTools.AddBoolPersistentListener(GetComponent<ClimbFacade>().ClimbStopped, new UnityEngine.Events.UnityAction<bool>(rig.CanMove), true);
 	}
 	void SetupPhysicalBody()
 	{
-		GetComponent<BodyRepresentationFacade>().Source = rig.alias.HeadsetAlias.gameObject;
-		GetComponent<BodyRepresentationFacade>().Offset = rig.alias.PlayAreaAlias.gameObject;
+		var playerController = GetComponent<PlayerController>();
 
-		GetComponent<InteractorFacadeObservableList>().Add(rig.leftHand.GetComponent<InteractorFacade>());
-		GetComponent<InteractorFacadeObservableList>().Add(rig.rightHand.GetComponent<InteractorFacade>());
+		playerController.rig = GetComponentInParent<PlayerRig>();
+		if (!playerController.rig.gameObject.GetComponent<Rigidbody>())
+		{
+			playerController.rb = playerController.rig.gameObject.AddComponent<Rigidbody>();
+			playerController.rb.constraints = RigidbodyConstraints.FreezeRotation;
+		}
+		else
+			playerController.rb = playerController.rig.gameObject.GetComponent<Rigidbody>();
+
+
+		if (!playerController.rig.gameObject.GetComponent<CapsuleCollider>())
+		{
+			playerController.col = playerController.rig.gameObject.AddComponent<CapsuleCollider>();
+			playerController.col.radius = .18f;//1.5
+			playerController.col.center = new Vector3(0, 1.5f / 2, 0);
+			playerController.col.height = 1.5f;
+		}
+		else
+			playerController.col = playerController.rig.gameObject.GetComponent<CapsuleCollider>();
+		//GetComponent<BodyRepresentationFacade>().Source = rig.alias.HeadsetAlias.gameObject;
+		//GetComponent<BodyRepresentationFacade>().Offset = rig.alias.PlayAreaAlias.gameObject;
+
+		//GetComponent<InteractorFacadeObservableList>().Add(rig.leftHand.GetComponent<InteractorFacade>());
+		//GetComponent<InteractorFacadeObservableList>().Add(rig.rightHand.GetComponent<InteractorFacade>());
 	}
 
 

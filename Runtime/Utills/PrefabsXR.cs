@@ -99,10 +99,10 @@ public class PrefabsXR
 				path = "Prefabs/PlayerComponents/Rotate.prefab";
 				break;
 			case PlayerComponent.ComponentTypes.Climb:
-				path = "Prefabs/PlayerComponents/Climb.prefab";
+				path = "Prefabs/PlayerComponents/Climb 2.0.prefab";
 				break;
 			case PlayerComponent.ComponentTypes.PhysicalBody:
-				path = "Prefabs/PlayerComponents/BodyRepresentation.prefab";
+				path = "Prefabs/PlayerComponents/PlayerBody.prefab";
 				break;
 		}
 

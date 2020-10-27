@@ -98,8 +98,6 @@ public class InputMapping
 
 	public void ButtonUpdate(bool data)
 	{
-		//if (button.KeyCode == KeyCode.Joystick1Button0)
-			Debug.Log("Sup");
 		UpdateBool.Invoke(data);
 		if (data)
 			Activated.Invoke();
