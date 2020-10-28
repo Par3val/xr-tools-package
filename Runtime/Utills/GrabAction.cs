@@ -27,7 +27,7 @@ public class GrabAction : BooleanAction
 
 		if (data.ActiveCollisions != null && data.ActiveCollisions.Count > 0)
 		{
-			if (data.ActiveCollisions[0].ColliderData == last || !Value)
+			if (/*data.ActiveCollisions[0].ColliderData == last || */!Value)
 				return;
 
 			var tempInteractible = data.ActiveCollisions[0].ColliderData.GetComponentInParent<InteractableFacade>();
@@ -37,7 +37,7 @@ public class GrabAction : BooleanAction
 			hand.Grab(tempInteractible);
 
 			lastValue = Value;
-			last = data.ActiveCollisions[0].ColliderData;
+			//last = data.ActiveCollisions[0].ColliderData;
 		}
 
 	}
