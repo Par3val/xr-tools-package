@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Video;
 using VRTK.Prefabs.Interactions.Interactables;
 using VRTK.Prefabs.Interactions.Interactors;
 
@@ -14,6 +15,7 @@ public class BetterClimb : MonoBehaviour
 	InteractableFacade climbPoint;
 
 	public Transform playArea;
+	public float ThrowMul = 1.5f;
 
 	PlayerController rigController;
 
@@ -140,13 +142,20 @@ public class BetterClimb : MonoBehaviour
 				if (rigController)
 				{
 					rigController.SetClimb(false);
-					rigController.rb.velocity = handVel * -1.5f;
+					rigController.rb.velocity = handVel * -ThrowMul;
 				}
 			}
 
 		}
 	}
 
+	public float GetThrowMultiplier() => ThrowMul;
+
+	public void SetThrowMultiplier(float val)
+	{
+		GetComponent<PlayerComponent>().UpdateClimb(val);
+		//ThrowMul = val;
+	}
 
 	Vector3 RemoveY(Vector3 input) => new Vector3(input.x, 0, input.y);
 

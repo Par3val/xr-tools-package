@@ -23,10 +23,13 @@ public class PlayerComponent : MonoBehaviour
 
 	//walk 
 	float speed = 1.75f;
-
+	
 	//rotate
 	bool smoothTurn = false;
 	int turnAmount = 45;
+
+	//climb
+	float ThrowMul = 1.5f;
 
 	public static PlayerComponent CreateComponent(ComponentTypes _type, PlayerRig _rig)
 	{
@@ -68,11 +71,21 @@ public class PlayerComponent : MonoBehaviour
 
 	public void UpdateWalk(float _speed)
 	{
-		_speed = speed;
+		speed = _speed;
+
 		var axisToVector = GetComponent<AxesToVector3Facade>();
 		axisToVector.LateralSpeedMultiplier = _speed;
 		axisToVector.LongitudinalSpeedMultiplier = -_speed;
 	}
+
+	public void UpdateClimb(float _throwMul)
+	{
+		ThrowMul = _throwMul;
+		var betterClimb = GetComponent<BetterClimb>();
+
+		betterClimb.ThrowMul = _throwMul;
+	}
+
 
 	public void UpdateRotate(bool _smooth, int _turnAmount)
 	{
@@ -171,6 +184,7 @@ public class PlayerComponent : MonoBehaviour
 				ShowRotate();
 				break;
 			case ComponentTypes.Climb:
+				ShowClimb();
 				break;
 			case ComponentTypes.PhysicalBody:
 				break;
@@ -184,6 +198,7 @@ public class PlayerComponent : MonoBehaviour
 		if (EditorGUI.EndChangeCheck())
 			UpdateWalk(speed);
 	}
+	
 
 	void ShowRotate()
 	{
@@ -193,6 +208,16 @@ public class PlayerComponent : MonoBehaviour
 
 		if (EditorGUI.EndChangeCheck())
 			UpdateRotate(smoothTurn, turnAmount);
+	}
+
+
+	void ShowClimb()
+	{
+		EditorGUI.BeginChangeCheck();
+		ThrowMul = EditorGUILayout.FloatField("Dismount Multiplier", ThrowMul);
+
+		if (EditorGUI.EndChangeCheck())
+			UpdateClimb(ThrowMul);
 	}
 	//#endif
 }
