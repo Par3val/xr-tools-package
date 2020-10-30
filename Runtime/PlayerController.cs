@@ -4,23 +4,25 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
+	public PlayerRig rig;
 	[HideInInspector]
 	public Rigidbody rb;
-	public PlayerRig rig;
+	[HideInInspector]
 	public CapsuleCollider col;
+
+	public float jumpPower = 2.5f;
 
 	const float headSize = 0.1524f;
 
 	private void Awake()
 	{
-		rig = GetComponentInParent<PlayerRig>();
-		//var playerRb = rig.gameObject.AddComponent<Rigidbody>();
-		//playerRb = GetComponent<Rigidbody>();
-		//var playerCol = rig.gameObject.AddComponent<CapsuleCollider>();
-		//playerCol = GetComponent<CapsuleCollider>();
+		if (!rig)
+			rig = GetComponentInParent<PlayerRig>();
 
-		//Destroy(GetComponent<Rigidbody>());
-		//Destroy(GetComponent<CapsuleCollider>());
+		if (!rb)
+			rb = rig.GetComponent<Rigidbody>();
+		if (!col)
+			col = rig.GetComponent<CapsuleCollider>();
 	}
 
 	void FixedUpdate()
@@ -42,6 +44,12 @@ public class PlayerController : MonoBehaviour
 	{
 		Vector3 headPos = rig.alias.HeadsetAlias.transform.localPosition;
 		return new Vector3(headPos.x, (headPos.y + headSize) / 2, headPos.z);
+	}
+
+	public void Jump()
+	{
+		Debug.Log("jump");
+		rb.velocity += transform.up * jumpPower;
 	}
 
 	private void OnCollisionEnter(Collision collision)

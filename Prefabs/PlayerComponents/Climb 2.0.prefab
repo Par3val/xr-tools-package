@@ -46,6 +46,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   type: 3
   rig: {fileID: 0}
+  walk: {fileID: 0}
+  rotate: {fileID: 0}
+  climb: {fileID: 0}
+  playerBody: {fileID: 0}
+  speed: 1.75
+  smoothTurn: 0
+  turnAmount: 45
+  throwMul: 1.5
+  jumpPower: 2.5
 --- !u!114 &6476066602599737101
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -59,3 +68,4 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   playArea: {fileID: 0}
+  throwMul: 1.75

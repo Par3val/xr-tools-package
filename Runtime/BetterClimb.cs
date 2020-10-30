@@ -15,7 +15,7 @@ public class BetterClimb : MonoBehaviour
 	InteractableFacade climbPoint;
 
 	public Transform playArea;
-	public float ThrowMul = 1.5f;
+	public float throwMul;
 
 	PlayerController rigController;
 
@@ -142,19 +142,19 @@ public class BetterClimb : MonoBehaviour
 				if (rigController)
 				{
 					rigController.SetClimb(false);
-					rigController.rb.velocity = handVel * -ThrowMul;
+					rigController.rb.velocity = handVel * -throwMul;
 				}
 			}
 
 		}
 	}
 
-	public float GetThrowMultiplier() => ThrowMul;
+	public float GetThrowMultiplier() => throwMul;
 
 	public void SetThrowMultiplier(float val)
 	{
-		GetComponent<PlayerComponent>().UpdateClimb(val);
-		//ThrowMul = val;
+		//GetComponent<PlayerComponent>().UpdateClimb(val);
+		throwMul = val;
 	}
 
 	Vector3 RemoveY(Vector3 input) => new Vector3(input.x, 0, input.y);

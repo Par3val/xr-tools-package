@@ -15,9 +15,11 @@ public class InputMapping
 	public InputTypeAxis1D type1D;
 	public InputTypeAxis2D type2D;
 
-	bool isLeft(InputManager.hands handedness) => handedness == InputManager.hands.Left;
-
 	public bool edtiorOpen = false;
+
+
+	bool isLeft(InputManager.hands handedness) => handedness == InputManager.hands.Left;
+	bool prevState = false;
 
 	UnityAxis1DAction axis1D;
 	UnityAxis2DAction axis2D;
@@ -57,10 +59,13 @@ public class InputMapping
 	[Serializable]
 	public enum AxisType { Button, Axis1D, Axis2D }
 	[Serializable]
-	public enum InputTypeButton { ThumbClick, ThumbTouch, 
-																TopClick, TopTouch, 
-																BottomClick, BottomTouch,
-																Menu }
+	public enum InputTypeButton
+	{
+		ThumbClick, ThumbTouch,
+		TopClick, TopTouch,
+		BottomClick, BottomTouch,
+		Menu
+	}
 	[Serializable]
 	public enum InputTypeAxis1D { Trigger, Hand }
 	[Serializable]
@@ -99,21 +104,31 @@ public class InputMapping
 	public void ButtonUpdate(bool data)
 	{
 		UpdateBool.Invoke(data);
-		if (data)
-			Activated.Invoke();
-		else
-			Deactivated.Invoke();
+		if (prevState != data)
+		{
+			if (data)
+				Activated.Invoke();
+			else
+				Deactivated.Invoke();
+		}
+
+		prevState = data;
 	}
 
 	public void Axis1DUpdate(float data)
 	{
 		Update1D.Invoke(data);
+		bool active = data >= activationRange.minimum && data <= activationRange.maximum;
 
-		if (data >= activationRange.minimum && data <= activationRange.maximum)
-			Activated.Invoke();
-		else
-			Deactivated.Invoke();
+		if(active != prevState)
+		{
+			if (active)
+				Activated.Invoke();
+			else
+				Deactivated.Invoke();
+		}
 
+		prevState = active;
 	}
 
 	public void Axis2DUpdate(Vector2 data)
@@ -130,17 +145,17 @@ public class InputMapping
 			case InputTypeButton.ThumbTouch:
 				return isLeft(handedness) ? KeyCode.JoystickButton16 : KeyCode.JoystickButton17;
 			case InputTypeButton.ThumbClick:
-				return  isLeft(handedness) ? KeyCode.JoystickButton8 : KeyCode.JoystickButton9;
+				return isLeft(handedness) ? KeyCode.JoystickButton8 : KeyCode.JoystickButton9;
 			case InputTypeButton.TopClick:
-				return  isLeft(handedness) ? KeyCode.JoystickButton3 : KeyCode.JoystickButton1;
+				return isLeft(handedness) ? KeyCode.JoystickButton3 : KeyCode.JoystickButton1;
 			case InputTypeButton.TopTouch:
 				return isLeft(handedness) ? KeyCode.JoystickButton13 : KeyCode.JoystickButton11;
 			case InputTypeButton.BottomClick:
-				return  isLeft(handedness) ? KeyCode.JoystickButton2 : KeyCode.JoystickButton0;
+				return isLeft(handedness) ? KeyCode.JoystickButton2 : KeyCode.JoystickButton0;
 			case InputTypeButton.BottomTouch:
 				return isLeft(handedness) ? KeyCode.JoystickButton12 : KeyCode.JoystickButton10;
 			case InputTypeButton.Menu:
-				return  isLeft(handedness) ? KeyCode.JoystickButton6 : KeyCode.JoystickButton6;
+				return isLeft(handedness) ? KeyCode.JoystickButton6 : KeyCode.JoystickButton6;
 			default:
 				return KeyCode.Space;
 		}
@@ -173,7 +188,7 @@ public class InputMapping
 	UnityAxis2DAction Axis2DTranslationVRTK(UnityAxis2DAction axis, InputManager.hands handedness)
 	{
 		UnityAxis2DAction tempAxis = axis;
-		
+
 		axis.XAxisName = isLeft(handedness) ? "XRI_Left_Primary2DAxis_Horizontal" : "XRI_Right_Primary2DAxis_Horizontal";
 		axis.YAxisName = isLeft(handedness) ? "XRI_Left_Primary2DAxis_Vertical" : "XRI_Right_Primary2DAxis_Vertical";
 

@@ -161,7 +161,6 @@ public class PlayerRigInspector : Editor
 		ShowHand(ref rig.leftHandOpen, rig.leftHand);
 		ShowHand(ref rig.rightHandOpen, rig.rightHand);
 
-
 		if (GUILayout.Button(rig.isSim ? "Simulator" : "Headset"))
 		{
 			rig.isSim = !rig.isSim;
@@ -201,8 +200,9 @@ public class PlayerRigInspector : Editor
 		GUILayout.Space(10f);
 		rig.playerComponentsOpen = EditorGUILayout.BeginFoldoutHeaderGroup(rig.playerComponentsOpen, $"PlayerComponents");
 		EditorGUILayout.EndFoldoutHeaderGroup();
+
 		EditorGUI.indentLevel++;
-		
+
 		if (rig.playerComponentsOpen)
 		{
 			foreach (PlayerComponent.ComponentTypes type in System.Enum.GetValues(typeof(PlayerComponent.ComponentTypes)))
@@ -210,7 +210,9 @@ public class PlayerRigInspector : Editor
 				var tempComponent = rig.GetActivePlayerComponent(type);
 
 				if (tempComponent != null)
-					tempComponent.ShowData();
+				{
+					CreateEditor(tempComponent).OnInspectorGUI();
+				}
 				else
 				{
 					if (GUILayout.Button($"Add {type}"))
@@ -224,6 +226,7 @@ public class PlayerRigInspector : Editor
 					}
 				}
 			}
+			Undo.FlushUndoRecordObjects();
 		}
 
 		EditorGUI.indentLevel--;

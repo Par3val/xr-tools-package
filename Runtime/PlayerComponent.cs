@@ -11,7 +11,7 @@ using VRTK.Prefabs.Locomotion.Movement.Climb;
 using Zinnia.Data.Operation.Mutation;
 using UnityEditor.Events;
 
-[ExecuteInEditMode, System.Serializable]
+[System.Serializable, ExecuteInEditMode]
 public class PlayerComponent : MonoBehaviour
 {
 	[System.Serializable]
@@ -21,15 +21,38 @@ public class PlayerComponent : MonoBehaviour
 	[HideInInspector]
 	public PlayerRig rig;
 
+	[SerializeField]
+	public AxesToVector3Facade walk;
+	[SerializeField]
+	public AxesToVector3Facade rotate;
+	[SerializeField]
+	public BetterClimb climb;
+	[SerializeField]
+	public PlayerController playerBody;
+
 	//walk 
-	float speed = 1.75f;
-	
+	[SerializeField]
+	public float speed = 1.75f;
+
 	//rotate
-	bool smoothTurn = false;
-	int turnAmount = 45;
+	[SerializeField]
+	public bool smoothTurn = false;
+	[SerializeField]
+	public int turnAmount = 45;
 
 	//climb
-	float ThrowMul = 1.5f;
+	[SerializeField]
+	public float throwMul = 1.5f;
+
+	//body
+	[SerializeField]
+	public float jumpPower = 2.5f;
+
+	//private void Start()
+	//{
+	//	Setup(rig);
+	//	UpdateVariables();
+	//}
 
 	public static PlayerComponent CreateComponent(ComponentTypes _type, PlayerRig _rig)
 	{
@@ -37,8 +60,8 @@ public class PlayerComponent : MonoBehaviour
 
 		if (!tempObject)
 			return null;
-
-		var instantiatedObject = ((GameObject)PrefabUtility.InstantiatePrefab(tempObject, _rig.transform)).GetComponent<PlayerComponent>();
+		var instantiatedObject = Instantiate(tempObject, _rig.transform).GetComponent<PlayerComponent>();
+		//var instantiatedObject = ((GameObject)PrefabUtility.InstantiatePrefab());
 		instantiatedObject.Setup(_rig);
 		return instantiatedObject;
 	}
@@ -69,38 +92,55 @@ public class PlayerComponent : MonoBehaviour
 
 	#region LiveChanges
 
+	public void UpdateVariables()
+	{
+		switch (type)
+		{
+			case ComponentTypes.Walk:
+				UpdateWalk(speed);
+				break;
+			case ComponentTypes.Teleport:
+				break;
+			case ComponentTypes.Rotate:
+				UpdateRotate(smoothTurn, turnAmount);
+				break;
+			case ComponentTypes.Climb:
+				UpdateClimb(throwMul);
+				break;
+			case ComponentTypes.PhysicalBody:
+				UpdatePlayerBody(jumpPower);
+				break;
+		}
+	}
+
 	public void UpdateWalk(float _speed)
 	{
-		speed = _speed;
-
-		var axisToVector = GetComponent<AxesToVector3Facade>();
-		axisToVector.LateralSpeedMultiplier = _speed;
-		axisToVector.LongitudinalSpeedMultiplier = -_speed;
+		walk.LateralSpeedMultiplier = _speed;
+		walk.LongitudinalSpeedMultiplier = -_speed;
 	}
-
-	public void UpdateClimb(float _throwMul)
-	{
-		ThrowMul = _throwMul;
-		var betterClimb = GetComponent<BetterClimb>();
-
-		betterClimb.ThrowMul = _throwMul;
-	}
-
-
 	public void UpdateRotate(bool _smooth, int _turnAmount)
 	{
 		smoothTurn = _smooth;
 		turnAmount = _turnAmount;
 
-
-		var axisToVector = GetComponent<AxesToVector3Facade>();
-		if (smoothTurn)
-			axisToVector.AxisUsageType = AxesToVector3Facade.AxisUsage.Incremental;
+		if (_smooth)
+			rotate.AxisUsageType = AxesToVector3Facade.AxisUsage.Incremental;
 		else
-			axisToVector.AxisUsageType = AxesToVector3Facade.AxisUsage.Directional;
+			rotate.AxisUsageType = AxesToVector3Facade.AxisUsage.Directional;
 
-		axisToVector.LateralSpeedMultiplier = turnAmount;
+		rotate.LateralSpeedMultiplier = _turnAmount;
 	}
+	public void UpdateClimb(float _throwMul)
+	{
+		throwMul = _throwMul;
+		climb.throwMul = _throwMul;
+	}
+	public void UpdatePlayerBody(float _jumpPower)
+	{
+		jumpPower = _jumpPower;
+		playerBody.jumpPower = _jumpPower;
+	}
+
 
 	#endregion
 
@@ -110,6 +150,7 @@ public class PlayerComponent : MonoBehaviour
 	{
 		GetComponent<TransformPositionMutator>().Target = rig.gameObject;
 		GetComponent<TransformPositionMutator>().FacingDirection = rig.alias.HeadsetAlias.gameObject;
+		walk = GetComponent<AxesToVector3Facade>();
 	}
 	void SetupTeleport()
 	{
@@ -119,11 +160,12 @@ public class PlayerComponent : MonoBehaviour
 	{
 		GetComponent<TransformEulerRotationMutator>().Target = rig.gameObject;
 		GetComponent<TransformEulerRotationMutator>().Origin = rig.alias.HeadsetAlias.gameObject;
+		rotate = GetComponent<AxesToVector3Facade>();
 	}
 	void SetupClimb()
 	{
-		GetComponent<BetterClimb>().playArea = rig.transform;
-
+		climb = GetComponent<BetterClimb>();
+		climb.playArea = rig.transform;
 
 		//if (!rig.physicalBody)
 		//{
@@ -138,27 +180,27 @@ public class PlayerComponent : MonoBehaviour
 	}
 	void SetupPhysicalBody()
 	{
-		var playerController = GetComponent<PlayerController>();
+		playerBody = GetComponent<PlayerController>();
 
-		playerController.rig = GetComponentInParent<PlayerRig>();
-		if (!playerController.rig.gameObject.GetComponent<Rigidbody>())
+		playerBody.rig = GetComponentInParent<PlayerRig>();
+		if (!playerBody.rig.gameObject.GetComponent<Rigidbody>())
 		{
-			playerController.rb = playerController.rig.gameObject.AddComponent<Rigidbody>();
-			playerController.rb.constraints = RigidbodyConstraints.FreezeRotation;
+			playerBody.rb = playerBody.rig.gameObject.AddComponent<Rigidbody>();
+			playerBody.rb.constraints = RigidbodyConstraints.FreezeRotation;
 		}
 		else
-			playerController.rb = playerController.rig.gameObject.GetComponent<Rigidbody>();
+			playerBody.rb = playerBody.rig.gameObject.GetComponent<Rigidbody>();
 
 
-		if (!playerController.rig.gameObject.GetComponent<CapsuleCollider>())
+		if (!playerBody.rig.gameObject.GetComponent<CapsuleCollider>())
 		{
-			playerController.col = playerController.rig.gameObject.AddComponent<CapsuleCollider>();
-			playerController.col.radius = .18f;//1.5
-			playerController.col.center = new Vector3(0, 1.5f / 2, 0);
-			playerController.col.height = 1.5f;
+			playerBody.col = playerBody.rig.gameObject.AddComponent<CapsuleCollider>();
+			playerBody.col.radius = .18f;//1.5
+			playerBody.col.center = new Vector3(0, 1.5f / 2, 0);
+			playerBody.col.height = 1.5f;
 		}
 		else
-			playerController.col = playerController.rig.gameObject.GetComponent<CapsuleCollider>();
+			playerBody.col = playerBody.rig.gameObject.GetComponent<CapsuleCollider>();
 		//GetComponent<BodyRepresentationFacade>().Source = rig.alias.HeadsetAlias.gameObject;
 		//GetComponent<BodyRepresentationFacade>().Offset = rig.alias.PlayAreaAlias.gameObject;
 
@@ -169,59 +211,88 @@ public class PlayerComponent : MonoBehaviour
 
 	#endregion
 
-	//#if UnityEditor
+}
+
+#if UNITY_EDITOR
+
+
+[CustomEditor(typeof(PlayerComponent)), System.Serializable]
+class PlayerComponentEditor : Editor
+{
+	PlayerComponent playerComp;
+	public override void OnInspectorGUI()
+	{
+		playerComp = (PlayerComponent)target;
+
+		if (!playerComp.rig)
+			playerComp.type = (PlayerComponent.ComponentTypes)EditorGUILayout.EnumPopup("Type ", playerComp.type);
+
+		ShowData();
+		//base.OnInspectorGUI();
+
+	}
 
 	public void ShowData()
 	{
-		switch (type)
+		switch (playerComp.type)
 		{
-			case ComponentTypes.Walk:
+			case PlayerComponent.ComponentTypes.Walk:
 				ShowWalk();
 				break;
-			case ComponentTypes.Teleport:
+			case PlayerComponent.ComponentTypes.Teleport:
 				break;
-			case ComponentTypes.Rotate:
+			case PlayerComponent.ComponentTypes.Rotate:
 				ShowRotate();
 				break;
-			case ComponentTypes.Climb:
+			case PlayerComponent.ComponentTypes.Climb:
 				ShowClimb();
 				break;
-			case ComponentTypes.PhysicalBody:
+			case PlayerComponent.ComponentTypes.PhysicalBody:
+				ShowPlayerBody();
 				break;
 		}
 	}
+
+
 	void ShowWalk()
 	{
 		EditorGUI.BeginChangeCheck();
-		speed = EditorGUILayout.FloatField("Walk Speed", speed);
+		playerComp.speed = EditorGUILayout.FloatField("Walk Speed", playerComp.speed);
 
 		if (EditorGUI.EndChangeCheck())
-			UpdateWalk(speed);
+			playerComp.UpdateWalk(playerComp.speed);
 	}
-	
 
 	void ShowRotate()
 	{
 		EditorGUI.BeginChangeCheck();
-		smoothTurn = EditorGUILayout.Toggle("Smooth Turning", smoothTurn);
-		turnAmount = EditorGUILayout.IntField("Turn Amount " + (smoothTurn ? "(smooth)" : "(snap)"), turnAmount);
+		playerComp.smoothTurn = EditorGUILayout.Toggle("Smooth Turning", playerComp.smoothTurn);
+		playerComp.turnAmount = EditorGUILayout.IntField("Turn Amount " + (playerComp.smoothTurn ? "(smooth)" : "(snap)"), playerComp.turnAmount);
 
 		if (EditorGUI.EndChangeCheck())
-			UpdateRotate(smoothTurn, turnAmount);
+			playerComp.UpdateRotate(playerComp.smoothTurn, playerComp.turnAmount);
 	}
-
 
 	void ShowClimb()
 	{
 		EditorGUI.BeginChangeCheck();
-		ThrowMul = EditorGUILayout.FloatField("Dismount Multiplier", ThrowMul);
+		playerComp.throwMul = EditorGUILayout.FloatField("Dismount Multiplier", playerComp.throwMul);
 
 		if (EditorGUI.EndChangeCheck())
-			UpdateClimb(ThrowMul);
+			playerComp.UpdateClimb(playerComp.throwMul);
 	}
-	//#endif
+
+	void ShowPlayerBody()
+	{
+		EditorGUI.BeginChangeCheck();
+		playerComp.jumpPower = EditorGUILayout.FloatField("Jump Power", playerComp.jumpPower);
+
+		if (EditorGUI.EndChangeCheck())
+			playerComp.UpdatePlayerBody(playerComp.jumpPower);
+	}
 }
 
+#endif
 //if (!rig.climb)
 //	CreateComponent(ComponentTypes.Climb, rig);
 //else
