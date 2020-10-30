@@ -74,6 +74,20 @@ public class InputManager : MonoBehaviour
 		grabAction.Receive(false);
 	}
 
+	public void AddMap(InputMapping newMap)
+	{
+		InputMapping[] tempMappings = new InputMapping[inputMappings.Length + 1];
+		for (int i = 0; i < inputMappings.Length; i++)
+		{
+			tempMappings[i] = inputMappings[i];
+		}
+
+		tempMappings[inputMappings.Length] = newMap;
+
+		inputMappings = tempMappings;
+
+	}
+
 
 	//public void UpdateMove(Vector2 data)
 	//{
@@ -155,7 +169,7 @@ public class InputManagerInspector : Editor
 
 		if (GUILayout.Button("Add InputMap"))
 		{
-			AddMap(new InputMapping("New Map"));
+			manager.AddMap(new InputMapping("New Map"));
 		}
 
 		//Grab Events
@@ -243,19 +257,6 @@ public class InputManagerInspector : Editor
 		return false;
 	}
 
-	public void AddMap(InputMapping newMap)
-	{
-		InputMapping[] tempMappings = new InputMapping[manager.inputMappings.Length + 1];
-		for (int i = 0; i < manager.inputMappings.Length; i++)
-		{
-			tempMappings[i] = manager.inputMappings[i];
-		}
-
-		tempMappings[manager.inputMappings.Length] = newMap;
-
-		manager.inputMappings = tempMappings;
-
-	}
 
 	public void RemoveMap(InputMapping relMap)
 	{
@@ -299,7 +300,7 @@ public class InputManagerInspector : Editor
 		InputMapping grabMapping = new InputMapping("Grab");
 		grabMapping.axisType = InputMapping.AxisType.Axis1D;
 		grabMapping.type1D = InputMapping.InputTypeAxis1D.Hand;
-		AddMap(grabMapping);
+		manager.AddMap(grabMapping);
 	}
 
 }

@@ -1,6 +1,6 @@
 {
   "name": "com.shadowsoptional.xr-tools",
-  "version": "0.1.16",
+  "version": "0.1.17",
   "displayName": "XR-Tools",
   "description": "Collection of XR-Tools using VRTK 4",
   "unity": "2018.1",

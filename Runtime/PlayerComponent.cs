@@ -10,6 +10,8 @@ using VRTK.Prefabs.Locomotion.Movement.AxesToVector3;
 using VRTK.Prefabs.Locomotion.Movement.Climb;
 using Zinnia.Data.Operation.Mutation;
 using UnityEditor.Events;
+using Zinnia.Tracking.Velocity;
+using Zinnia.Action;
 
 [System.Serializable, ExecuteInEditMode]
 public class PlayerComponent : MonoBehaviour
@@ -151,6 +153,13 @@ public class PlayerComponent : MonoBehaviour
 		GetComponent<TransformPositionMutator>().Target = rig.gameObject;
 		GetComponent<TransformPositionMutator>().FacingDirection = rig.alias.HeadsetAlias.gameObject;
 		walk = GetComponent<AxesToVector3Facade>();
+
+		var walkMap = new InputMapping("Walk");
+		walkMap.axisType = InputMapping.AxisType.Axis2D;
+		walkMap.type2D = InputMapping.InputTypeAxis2D.Thumb2D;
+
+		UnityEventTools.AddPersistentListener(walkMap.Moved2D, GetComponent<Vector2Action>().Receive);
+		rig.leftHand.AddMap(walkMap);
 	}
 	void SetupTeleport()
 	{
@@ -161,6 +170,13 @@ public class PlayerComponent : MonoBehaviour
 		GetComponent<TransformEulerRotationMutator>().Target = rig.gameObject;
 		GetComponent<TransformEulerRotationMutator>().Origin = rig.alias.HeadsetAlias.gameObject;
 		rotate = GetComponent<AxesToVector3Facade>();
+
+		var rotateMap = new InputMapping("Walk");
+		rotateMap.axisType = InputMapping.AxisType.Axis2D;
+		rotateMap.type2D = InputMapping.InputTypeAxis2D.Thumb2D;
+
+		UnityEventTools.AddPersistentListener(rotateMap.Moved2D, GetComponent<Vector2Action>().Receive);
+		rig.rightHand.AddMap(rotateMap);
 	}
 	void SetupClimb()
 	{
@@ -201,6 +217,12 @@ public class PlayerComponent : MonoBehaviour
 		}
 		else
 			playerBody.col = playerBody.rig.gameObject.GetComponent<CapsuleCollider>();
+
+		if(!playerBody.rig.gameObject.GetComponent<AverageVelocityEstimator>())
+		{
+			var vel = playerBody.rig.gameObject.AddComponent<AverageVelocityEstimator>();
+			vel.Source = playerBody.rig.gameObject;
+		}
 		//GetComponent<BodyRepresentationFacade>().Source = rig.alias.HeadsetAlias.gameObject;
 		//GetComponent<BodyRepresentationFacade>().Offset = rig.alias.PlayAreaAlias.gameObject;
 
