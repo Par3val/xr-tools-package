@@ -1,12 +1,7 @@
 ﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEditor;
-using UnityEditor.Events;
 using UnityEngine;
-using UnityEngine.Events;
 using VRTK.Prefabs.Interactions.Interactables;
 using VRTK.Prefabs.Interactions.Interactors;
-using VRTK.Prefabs.Locomotion.Movement.Climb;
 
 [RequireComponent(typeof(InteractibleObject))]
 public class ClimbableObject : MonoBehaviour

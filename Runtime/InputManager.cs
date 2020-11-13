@@ -1,11 +1,7 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 using Zinnia.Action;
-using VRTK.Prefabs.Locomotion.Movement.AxesToVector3;
-using System.Runtime.InteropServices;
 using VRTK.Prefabs.Interactions.Interactors;
 
 [RequireComponent(typeof(BooleanAction)), ExecuteInEditMode]
@@ -100,6 +96,7 @@ public class InputManager : MonoBehaviour
 	//}
 }
 
+#if UNITY_EDITOR
 
 [CustomEditor(typeof(InputManager))]
 public class InputManagerInspector : Editor
@@ -304,3 +301,5 @@ public class InputManagerInspector : Editor
 	}
 
 }
+
+#endif

@@ -1,8 +1,12 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using UnityEngine;
+
+#if UNITY_EDITOR
 using UnityEditor;
 using UnityEditor.PackageManager;
-using UnityEngine;
+#endif
+
 [ExecuteInEditMode]
 public class PrefabsXR
 {
@@ -35,16 +39,16 @@ public class PrefabsXR
 		return (GameObject)AssetDatabase.LoadAssetAtPath(genericPath + path, typeof(GameObject));
 	}
 
-	[MenuItem("Component/XR-Tools/Toggle Devmode")]
-	private static void ToggleMode()
-	{
-		inDev = !inDev;
-	}
-	[MenuItem("Component/XR-Tools/Check Devmode")]
-	private static void TestMode()
-	{
-		Debug.Log("InDev: " + inDev);
-	}
+	//[MenuItem("Component/XR-Tools/Toggle Devmode")]
+	//private static void ToggleMode()
+	//{
+	//	inDev = !inDev;
+	//}
+	//[MenuItem("Component/XR-Tools/Check Devmode")]
+	//private static void TestMode()
+	//{
+	//	Debug.Log("InDev: " + inDev);
+	//}
 
 	public static void Test()
 	{
@@ -119,6 +123,8 @@ public class PrefabsXR
 
 }
 
+#if UNITY_EDITOR
+
 public class XRToolsEditor : EditorWindow
 {
 	bool inDev;
@@ -171,3 +177,5 @@ public class XRToolsEditor : EditorWindow
 	//}
 	#endregion
 }
+
+#endif

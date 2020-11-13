@@ -1,17 +1,15 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
-using UnityEditor;
 using UnityEngine;
-using VRTK.Prefabs.Interactions.Interactables;
-using VRTK.Prefabs.Interactions.Interactors;
-using VRTK.Prefabs.Interactions.Interactors.Collection;
-using VRTK.Prefabs.Locomotion.BodyRepresentation;
 using VRTK.Prefabs.Locomotion.Movement.AxesToVector3;
-using VRTK.Prefabs.Locomotion.Movement.Climb;
 using Zinnia.Data.Operation.Mutation;
-using UnityEditor.Events;
 using Zinnia.Tracking.Velocity;
 using Zinnia.Action;
+
+#if UNITY_EDITOR
+using UnityEditor;
+using UnityEditor.Events;
+#endif
 
 [System.Serializable, ExecuteInEditMode]
 public class PlayerComponent : MonoBehaviour

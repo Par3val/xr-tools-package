@@ -82,15 +82,15 @@ public class DriveObject : MonoBehaviour
 			return tempEvent;
 		}
 
-		public SerializedObject GetSerializedFloatToBoolean()
-		{
-			return new UnityEditor.SerializedObject(floatToBoolean);
-		}
+		//public SerializedObject GetSerializedFloatToBoolean()
+		//{
+		//	return new UnityEditor.SerializedObject(floatToBoolean);
+		//}
 
-		public SerializedObject GetSerializedBooleanAction()
-		{
-			return new UnityEditor.SerializedObject(booleanAction);
-		}
+		//public SerializedObject GetSerializedBooleanAction()
+		//{
+		//	return new UnityEditor.SerializedObject(booleanAction);
+		//}
 
 	}
 
