@@ -54,17 +54,6 @@ public class PlayerComponent : MonoBehaviour
 	//	UpdateVariables();
 	//}
 
-	public static PlayerComponent CreateComponent(ComponentTypes _type, PlayerRig _rig)
-	{
-		var tempObject = PrefabsXR.GetPlayerComponent(_type);
-
-		if (!tempObject)
-			return null;
-		var instantiatedObject = Instantiate(tempObject, _rig.transform).GetComponent<PlayerComponent>();
-		//var instantiatedObject = ((GameObject)PrefabUtility.InstantiatePrefab());
-		instantiatedObject.Setup(_rig);
-		return instantiatedObject;
-	}
 
 	public void Setup(PlayerRig _rig)
 	{
@@ -309,6 +298,19 @@ class PlayerComponentEditor : Editor
 
 		if (EditorGUI.EndChangeCheck())
 			playerComp.UpdatePlayerBody(playerComp.jumpPower);
+	}
+
+
+	public static PlayerComponent CreateComponent(PlayerComponent.ComponentTypes _type, PlayerRig _rig)
+	{
+		var tempObject = PrefabsXR.GetPlayerComponent(_type);
+
+		if (!tempObject)
+			return null;
+		var instantiatedObject = Instantiate(tempObject, _rig.transform).GetComponent<PlayerComponent>();
+		//var instantiatedObject = ((GameObject)PrefabUtility.InstantiatePrefab());
+		instantiatedObject.Setup(_rig);
+		return instantiatedObject;
 	}
 }
 

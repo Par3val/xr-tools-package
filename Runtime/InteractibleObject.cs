@@ -46,10 +46,10 @@ public class InteractibleObject : MonoBehaviour
 
     isThis = true;
 
-    if (!facade.GrabConfiguration.SecondaryAction)
-      SwitchSecondaryAction();
+    
   }
 
+#if UNITY_EDITOR
   private void OnDrawGizmos()
   {
     if (PrefabUtility.IsPartOfAnyPrefab(gameObject))
@@ -57,17 +57,7 @@ public class InteractibleObject : MonoBehaviour
 			PrefabUtility.UnpackPrefabInstance(transform.root.gameObject, PrefabUnpackMode.OutermostRoot, InteractionMode.AutomatedAction);
 		}
   }
-
-  public void SwitchSecondaryAction()
-  {
-    Transform secondaryActionParent = facade.GrabConfiguration.transform.GetChild(2).GetChild(1);
-
-    if (facade.GrabConfiguration.SecondaryAction)
-      DestroyImmediate(facade.GrabConfiguration.SecondaryAction.gameObject);
-    print(secondaryAction);
-    facade.GrabConfiguration.SecondaryAction = Instantiate(PrefabsXR.GetActionByEnum(secondaryAction), secondaryActionParent).GetComponent<GrabInteractableAction>();
-    facade.GrabConfiguration.SecondaryAction.gameObject.name = secondaryAction.ToString();
-  }
+#endif
 }
 
 #if UNITY_EDITOR
@@ -137,6 +127,9 @@ public class InteractibleObjectInspector : Editor
   private void OnEnable()
   {
     //isThis = true;
+
+    if (!facade.GrabConfiguration.SecondaryAction)
+      SwitchSecondaryAction();
   }
 
   void ShowProperties()
@@ -286,7 +279,7 @@ public class InteractibleObjectInspector : Editor
     if (!facade.GrabConfiguration.SecondaryAction)
     {
       if (GUILayout.Button("Generate Secondary Action"))
-        interactibleObject.SwitchSecondaryAction();
+        SwitchSecondaryAction();
     }
     else
     {
@@ -297,7 +290,7 @@ public class InteractibleObjectInspector : Editor
       interactibleObject.secondaryAction = (InteractibleObject.SecondaryTypes)EditorGUILayout.EnumPopup("SecondaryAction", interactibleObject.secondaryAction);
 
       if (interactibleObject.secondaryAction != previous)
-        interactibleObject.SwitchSecondaryAction();
+        SwitchSecondaryAction();
 
 
       MyEditorTools.ShowRefrenceButton(facade.GrabConfiguration.SecondaryAction.gameObject);
@@ -305,6 +298,17 @@ public class InteractibleObjectInspector : Editor
 
       MyEditorTools.EndHorizontal();
     }
+  }
+
+  public void SwitchSecondaryAction()
+  {
+    Transform secondaryActionParent = facade.GrabConfiguration.transform.GetChild(2).GetChild(1);
+
+    if (facade.GrabConfiguration.SecondaryAction)
+      DestroyImmediate(facade.GrabConfiguration.SecondaryAction.gameObject);
+    Debug.Log(interactibleObject.secondaryAction);
+    facade.GrabConfiguration.SecondaryAction = Instantiate(PrefabsXR.GetActionByEnum(interactibleObject.secondaryAction), secondaryActionParent).GetComponent<GrabInteractableAction>();
+    facade.GrabConfiguration.SecondaryAction.gameObject.name = interactibleObject.secondaryAction.ToString();
   }
 }
 

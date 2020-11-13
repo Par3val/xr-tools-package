@@ -139,27 +139,7 @@ public class DriveObject : MonoBehaviour
 		}
 	}
 
-	public void SetupDrivePrefab()
-	{
-		if (dirDriveFacade)
-			DestroyImmediate(dirDriveFacade.gameObject);
-		if (rotDriveFacade)
-			DestroyImmediate(rotDriveFacade.gameObject);
-
-		GameObject prefab = PrefabsXR.GetDrive(driveType, interactType);
-		GameObject newDrive = Instantiate(prefab, transform);
-		newDrive.transform.SetAsFirstSibling();
-		newDrive.name = prefab.name;
-
-		if (driveType == DriveType.Directional)
-			dirDriveFacade = newDrive.GetComponent<DirectionalDriveFacade>();
-		else
-			rotDriveFacade = newDrive.GetComponent<RotationalDriveFacade>();
-
-
-
-		OnEnable();
-	}
+	
 
 	public void SetPreviewDrivePosition(float targetValue)
 	{
@@ -324,7 +304,7 @@ public class DriveObjectInspector : Editor
 		{
 			GUILayout.Label("No Drive");
 			if (GUILayout.Button("Create Drive"))
-				drive.SetupDrivePrefab();
+				SetupDrivePrefab();
 
 			return false;
 		}
@@ -343,7 +323,7 @@ public class DriveObjectInspector : Editor
 			{
 				drive.driveType = tempDriveType;
 				drive.interactType = tempInteractType;
-				drive.SetupDrivePrefab();
+				SetupDrivePrefab();
 			}
 		}
 
@@ -425,6 +405,28 @@ public class DriveObjectInspector : Editor
 		{
 			ShowPreview();
 		}
+	}
+
+	public void SetupDrivePrefab()
+	{
+		if (drive.dirDriveFacade)
+			DestroyImmediate(drive.dirDriveFacade.gameObject);
+		if (drive.rotDriveFacade)
+			DestroyImmediate(drive.rotDriveFacade.gameObject);
+
+		GameObject prefab = PrefabsXR.GetDrive(drive.driveType, drive.interactType);
+		GameObject newDrive = Instantiate(prefab, drive.transform);
+		newDrive.transform.SetAsFirstSibling();
+		newDrive.name = prefab.name;
+
+		if (drive.driveType == DriveObject.DriveType.Directional)
+			drive.dirDriveFacade = newDrive.GetComponent<DirectionalDriveFacade>();
+		else
+			drive.rotDriveFacade = newDrive.GetComponent<RotationalDriveFacade>();
+
+
+
+		OnEnable();
 	}
 
 	void ShowPreview()

@@ -217,7 +217,7 @@ public class PlayerRigInspector : Editor
 				{
 					if (GUILayout.Button($"Add {type}"))
 					{
-						var component = PlayerComponent.CreateComponent(type, rig);
+						var component = PlayerComponentEditor.CreateComponent(type, rig);
 
 						if (component != null)
 							rig.SetPlayerComponentsInRig(component);

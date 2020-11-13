@@ -5,6 +5,7 @@ using UnityEditor;
 
 public struct MyEditorTools
 {
+#if UNITY_EDITOR
   public static GUILayoutOption miniButtonWidth = GUILayout.Width(25f);
   public static GUILayoutOption miniFeildWidth = GUILayout.Width(50f);
 
@@ -33,5 +34,5 @@ public struct MyEditorTools
   {
     EditorGUILayout.EndHorizontal();
   }
-
+#endif
 }

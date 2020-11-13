@@ -10,9 +10,11 @@ using UnityEditor.PackageManager;
 [ExecuteInEditMode]
 public class PrefabsXR
 {
+#if UNITY_EDITOR
 	public static bool inDev = false;
 	//may need to auto switch if detects is dev shouldnt be on
 	static string genericPath { get { return inDev ? ("Assets/") : ("Packages/com.shadowsoptional.xr-tools/"); } }
+
 	public static GameObject GetActionByEnum(InteractibleObject.SecondaryTypes actionType)
 	{
 		string path = "";
@@ -49,12 +51,6 @@ public class PrefabsXR
 	//{
 	//	Debug.Log("InDev: " + inDev);
 	//}
-
-	public static void Test()
-	{
-		var tootip = (GameObject)AssetDatabase.LoadAssetAtPath("Packages/io.extendreality.vrtk.prefabs/Helpers/Tooltip/Tooltip.prefab", typeof(GameObject));
-		Debug.Log(tootip);
-	}
 
 	public static GameObject GetDrive(DriveObject.DriveType driveType, DriveObject.InteractType interactType)
 	{
@@ -115,6 +111,8 @@ public class PrefabsXR
 
 		return (GameObject)AssetDatabase.LoadAssetAtPath(genericPath + path, typeof(GameObject));
 	}
+
+#endif
 
 	static void NoPathError(object issue)
 	{
