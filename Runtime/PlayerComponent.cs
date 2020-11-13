@@ -144,8 +144,9 @@ public class PlayerComponent : MonoBehaviour
 		var walkMap = new InputMapping("Walk");
 		walkMap.axisType = InputMapping.AxisType.Axis2D;
 		walkMap.type2D = InputMapping.InputTypeAxis2D.Thumb2D;
-
+#if UNITY_EDITOR
 		UnityEventTools.AddPersistentListener(walkMap.Moved2D, GetComponent<Vector2Action>().Receive);
+#endif
 		rig.leftHand.AddMap(walkMap);
 	}
 	void SetupTeleport()
@@ -161,8 +162,9 @@ public class PlayerComponent : MonoBehaviour
 		var rotateMap = new InputMapping("Walk");
 		rotateMap.axisType = InputMapping.AxisType.Axis2D;
 		rotateMap.type2D = InputMapping.InputTypeAxis2D.Thumb2D;
-
+#if UNITY_EDITOR
 		UnityEventTools.AddPersistentListener(rotateMap.Moved2D, GetComponent<Vector2Action>().Receive);
+#endif
 		rig.rightHand.AddMap(rotateMap);
 	}
 	void SetupClimb()
