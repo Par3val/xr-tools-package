@@ -109,7 +109,9 @@ public class InputMapping : MonoBehaviour
 
 	public void Awake()
 	{
-		manager = GetComponentInParent<InputManager>();
+		if (manager == null)
+			manager = GetComponentInParent<InputManager>();
+
 		if (manager && Application.isPlaying)
 			switch (axisType)
 			{
