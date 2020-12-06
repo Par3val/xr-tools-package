@@ -5,311 +5,377 @@ using VRTK.Prefabs.Interactions.Interactables;
 using VRTK.Prefabs.Interactions.Interactables.Grab.Action;
 using VRTK.Prefabs.Interactions.Interactables.Grab.Receiver;
 using UnityEditor;
+using static VRTK.Prefabs.Interactions.Interactables.Grab.Receiver.GrabInteractableReceiver;
+using static VRTK.Prefabs.Interactions.Interactables.Grab.Action.GrabInteractableFollowAction;
 
-[SelectionBase, ExecuteInEditMode]
+[SelectionBase, ExecuteInEditMode, System.Serializable]
 public class InteractibleObject : MonoBehaviour
 {
-  [System.Serializable]
-  public enum SecondaryTypes { None, Swap, FollowDirection, Scale }
+	[System.Serializable]
+	public enum SecondaryTypes { None, Swap, FollowDirection, Scale }
 
-  public InteractableFacade facade;
-  public GameObject meshContainer;
-  public SecondaryTypes secondaryAction = SecondaryTypes.Swap;
+	public InteractableFacade facade;
+	public GameObject meshContainer;
+	public SecondaryTypes secondaryAction;
 
-  //if drive child
-  public bool isDriveChild = false;
-  public bool isThis = false;
-  public DriveObject drive;
 
-  public GrabInteractableReceiver.ActiveType HoldType
-  {
-    get
-    {
-      return facade.GrabConfiguration.GrabReceiver.GrabType;
+	//if drive child
+	public bool isDriveChild = false;
+	public bool isThis = false;
+	public DriveObject drive;
 
-    }
-    set
-    {
-      facade.GrabConfiguration.GrabReceiver.GrabType = value;
-    }
-  }
 
-  public void OnDrawGizmosSelected()
-  {
-    isThis = true;
-  }
+	#region Foldout Bools
 
-  public void OnEnable()
-  {
-    facade = transform.GetComponent<InteractableFacade>();
-    meshContainer = transform.GetChild(0).gameObject;
+	public bool grabSettingsBool;
+	public bool eventBool;
 
-    isThis = true;
+	#endregion
 
-    
-  }
+	public GrabInteractableReceiver.ActiveType HoldType
+	{
+		get
+		{
+			return facade.GrabConfiguration.GrabReceiver.GrabType;
 
-#if UNITY_EDITOR
-  private void OnDrawGizmos()
-  {
-    if (PrefabUtility.IsPartOfAnyPrefab(gameObject))
-    {
-			PrefabUtility.UnpackPrefabInstance(transform.root.gameObject, PrefabUnpackMode.OutermostRoot, InteractionMode.AutomatedAction);
 		}
-  }
-#endif
+		set
+		{
+			facade.GrabConfiguration.GrabReceiver.GrabType = value;
+		}
+	}
+
+	public void OnDrawGizmosSelected()
+	{
+		isThis = true;
+	}
+
+	public void OnEnable()
+	{
+		facade = transform.GetComponent<InteractableFacade>();
+		meshContainer = transform.GetChild(0).gameObject;
+
+		isThis = true;
+
+
+	}
 }
 
+
+
 #if UNITY_EDITOR
 
-[CustomEditor(typeof(InteractibleObject))]
+[CustomEditor(typeof(InteractibleObject)),]
 public class InteractibleObjectInspector : Editor
 {
-  InteractibleObject interactibleObject;
-  SerializedObject serializedFacade;
-  InteractableFacade facade;
+	InteractibleObject interactibleObject;
+	SerializedObject serializedFacade;
+	InteractableFacade facade;
 
-  private static GUILayoutOption miniButtonWidth = GUILayout.Width(25f);
+	#region Serialized Propertys
 
-  #region Foldout Bools
+	SerializedProperty touchedAction;
+	SerializedProperty unTouchedAction;
+	SerializedProperty firstTouched;
+	SerializedProperty lastUnTouchedAction;
 
-  bool grabSettingsBool = true;
-  bool eventBool = false;
+	SerializedProperty grabbedAction;
+	SerializedProperty unGrabbedAction;
+	SerializedProperty firstGrabbed;
+	SerializedProperty lastUngrabbedAction;
 
-  #endregion
+	#endregion
 
-  #region Serialized Propertys
+	private void OnSceneGUI()
+	{
+		interactibleObject = (InteractibleObject)target;
 
-  SerializedProperty touchedAction;
-  SerializedProperty unTouchedAction;
-  SerializedProperty firstTouched;
-  SerializedProperty lastUnTouchedAction;
+		if (interactibleObject.secondaryAction == InteractibleObject.SecondaryTypes.FollowDirection)
+		{
+			Handles.color = Color.red;
+			Handles.DrawLine(interactibleObject.transform.position, interactibleObject.transform.position + interactibleObject.transform.forward);
+		}
 
-  SerializedProperty grabbedAction;
-  SerializedProperty unGrabbedAction;
-  SerializedProperty firstGrabbed;
-  SerializedProperty lastUngrabbedAction;
+		//var tempEditor = CreateEditor(interactibleObject);
 
-  #endregion
+		//tempEditor.OnInspectorGUI();
+		//SceneView.RepaintAll();
+		//tempEditor.serializedObject.ApplyModifiedProperties();
+	}
 
-  private void OnSceneGUI()
-  {
-    interactibleObject = (InteractibleObject)target;
+	public override void OnInspectorGUI()
+	{
+		interactibleObject = (InteractibleObject)target;
 
-    var tempEditor = CreateEditor(interactibleObject);
+		if (interactibleObject.facade)
+		{
+			serializedObject.Update();
 
-    tempEditor.OnInspectorGUI();
-    SceneView.RepaintAll();
-    tempEditor.serializedObject.ApplyModifiedProperties();
-  }
+			facade = interactibleObject.facade;
+			serializedFacade = new SerializedObject(facade);
 
-  public override void OnInspectorGUI()
-  {
-    interactibleObject = (InteractibleObject)target;
+			if (facade != null)
+				ShowProperties();
+			else
+				GUILayout.Label("NO INTERACIBLE OBJECT");
 
-    if (interactibleObject.facade)
-    {
-      serializedObject.Update();
+			serializedFacade.ApplyModifiedProperties();
+			serializedObject.ApplyModifiedProperties();
+		}
+	}
 
-      facade = interactibleObject.facade;
-      serializedFacade = new SerializedObject(facade);
+	private void OnEnable()
+	{
+		//isThis = true;
+		if (facade)
+			if (!facade.GrabConfiguration.SecondaryAction)
+				SwitchSecondaryAction();
+	}
 
-      if (facade != null)
-        ShowProperties();
-      else
-        GUILayout.Label("NO INTERACIBLE OBJECT");
+	void ShowProperties()
+	{
+		ShowMeshColRefrence();
+		ShowSecondaryActionType();
 
-      serializedFacade.ApplyModifiedProperties();
-      serializedObject.ApplyModifiedProperties();
-    }
-  }
+		ShowGrabSettings();
+		ShowEvents();
+		ShowVariations();
+	}
 
-  private void OnEnable()
-  {
-    //isThis = true;
-
-    if (!facade.GrabConfiguration.SecondaryAction)
-      SwitchSecondaryAction();
-  }
-
-  void ShowProperties()
-  {
-    ShowMeshColRefrence();
-    ShowSecondaryActionType();
-
-    ShowGrabSettings();
-    ShowEvents();
-    ShowVariations();
-  }
-
-  private void ShowVariations()
-  {
-    if (interactibleObject.isDriveChild && interactibleObject.isThis)
-      if (GUILayout.Button("GOTO: Drive"))
-        MyEditorTools.FocusObject(interactibleObject.drive.gameObject, true);
+	private void ShowVariations()
+	{
+		if (interactibleObject.isDriveChild && interactibleObject.isThis)
+			if (GUILayout.Button("GOTO: Drive"))
+				MyEditorTools.FocusObject(interactibleObject.drive.gameObject, true);
 
 
-  }
+	}
 
-  void ShowEvents()
-  {
-    FindEvents();
+	void ShowEvents()
+	{
+		FindEvents();
 
-    MyEditorTools.BeginHorizontal();
-    eventBool = EditorGUILayout.BeginFoldoutHeaderGroup(eventBool, "Event Actions");
-    MyEditorTools.ShowRefrenceButton(facade.gameObject);
-    EditorGUILayout.EndFoldoutHeaderGroup();
-    MyEditorTools.EndHorizontal();
+		MyEditorTools.BeginHorizontal();
+		bool eventBool = EditorGUILayout.BeginFoldoutHeaderGroup(interactibleObject.eventBool, "Event Actions");
+		MyEditorTools.ShowRefrenceButton(facade.gameObject);
+		EditorGUILayout.EndFoldoutHeaderGroup();
+		MyEditorTools.EndHorizontal();
 
-    if (eventBool)
-    {
-      EditorGUILayout.PropertyField(firstTouched);
-      EditorGUILayout.PropertyField(touchedAction);
-      EditorGUILayout.PropertyField(unTouchedAction);
-      EditorGUILayout.PropertyField(lastUnTouchedAction);
+		if (interactibleObject.eventBool != eventBool)
+		{
+			Undo.RecordObject(interactibleObject, "Toggled Event Foldout");
+			interactibleObject.eventBool = eventBool;
+		}
 
-      EditorGUILayout.PropertyField(firstGrabbed);
-      EditorGUILayout.PropertyField(grabbedAction);
-      EditorGUILayout.PropertyField(unGrabbedAction);
-      EditorGUILayout.PropertyField(lastUngrabbedAction);
+		if (interactibleObject.eventBool)
+		{
+			EditorGUILayout.PropertyField(firstTouched);
+			EditorGUILayout.PropertyField(touchedAction);
+			EditorGUILayout.PropertyField(unTouchedAction);
+			EditorGUILayout.PropertyField(lastUnTouchedAction);
 
-      serializedFacade.ApplyModifiedProperties();
-    }
-  }
+			EditorGUILayout.PropertyField(firstGrabbed);
+			EditorGUILayout.PropertyField(grabbedAction);
+			EditorGUILayout.PropertyField(unGrabbedAction);
+			EditorGUILayout.PropertyField(lastUngrabbedAction);
 
-  void FindEvents()
-  {
-    touchedAction = serializedFacade.FindProperty("Touched");
-    unTouchedAction = serializedFacade.FindProperty("Untouched");
-    firstTouched = serializedFacade.FindProperty("FirstTouched");
-    lastUnTouchedAction = serializedFacade.FindProperty("LastUntouched");
+			serializedFacade.ApplyModifiedProperties();
+		}
+	}
 
-    grabbedAction = serializedFacade.FindProperty("Grabbed");
-    unGrabbedAction = serializedFacade.FindProperty("Ungrabbed");
-    firstGrabbed = serializedFacade.FindProperty("FirstGrabbed");
-    lastUngrabbedAction = serializedFacade.FindProperty("LastUngrabbed");
-  }
+	void FindEvents()
+	{
+		touchedAction = serializedFacade.FindProperty("Touched");
+		unTouchedAction = serializedFacade.FindProperty("Untouched");
+		firstTouched = serializedFacade.FindProperty("FirstTouched");
+		lastUnTouchedAction = serializedFacade.FindProperty("LastUntouched");
 
-  #region ShowGrabSettings
+		grabbedAction = serializedFacade.FindProperty("Grabbed");
+		unGrabbedAction = serializedFacade.FindProperty("Ungrabbed");
+		firstGrabbed = serializedFacade.FindProperty("FirstGrabbed");
+		lastUngrabbedAction = serializedFacade.FindProperty("LastUngrabbed");
+	}
 
-  public void ShowGrabSettings()
-  {
+	#region ShowGrabSettings
 
-    grabSettingsBool = EditorGUILayout.BeginFoldoutHeaderGroup(grabSettingsBool, "Grab Settings");
-    EditorGUILayout.EndFoldoutHeaderGroup();
-    if (grabSettingsBool)
-    {
-      EditorGUI.indentLevel += 1;
-      ShowHoldType();
-      ShowFollowType();
-      ShowOffsetType();
-      EditorGUI.indentLevel -= 1;
-    }
-  }
+	public void ShowGrabSettings()
+	{
 
-  public void ShowHoldType()
-  {
-    MyEditorTools.BeginHorizontal();
+		bool grabSettings = EditorGUILayout.BeginFoldoutHeaderGroup(interactibleObject.grabSettingsBool, "Grab Settings");
+		EditorGUILayout.EndFoldoutHeaderGroup();
 
-    var grabType = interactibleObject.facade.GrabConfiguration.GrabReceiver.GrabType;
-    var newGrabType = (GrabInteractableReceiver.ActiveType)EditorGUILayout.EnumPopup("Grab Type", grabType);
+		if (interactibleObject.grabSettingsBool != grabSettings)
+		{
+			Undo.RecordObject(interactibleObject, "Toggled Grab Settings");
+			interactibleObject.grabSettingsBool = grabSettings;
+		}
 
-    //var grabRecciver = new SerializedObject(interactibleObject.facade.GrabConfiguration.GrabReceiver);
-    //var type = grabRecciver.FindProperty("GrabType");
-    //Debug.Log(type);
-    ////EditorGUILayout.PropertyField(type);
-    //grabRecciver.ApplyModifiedPropertiesWithoutUndo();
-    if (grabType != newGrabType)
-    {
-      interactibleObject.facade.GrabConfiguration.GrabReceiver.GrabType = newGrabType;
-      interactibleObject.facade.GrabConfiguration.GrabReceiver.ConfigureGrabType();
-    }
+		if (interactibleObject.grabSettingsBool)
+		{
+			EditorGUI.indentLevel += 1;
+			ShowHoldType();
+			ShowFollowType();
+			ShowOffsetType();
+			EditorGUI.indentLevel -= 1;
+		}
+	}
 
-    MyEditorTools.ShowRefrenceButton(interactibleObject.facade.GrabConfiguration.GrabReceiver.gameObject);
+	public void ShowHoldType()
+	{
+		MyEditorTools.BeginHorizontal();
 
-    MyEditorTools.EndHorizontal();
+		var grabRecciver = new SerializedObject(interactibleObject.facade.GrabConfiguration.GrabReceiver.GetComponent<MyGrabInteractableReceiver>());
+		var type = grabRecciver.FindProperty("_grabType");
 
-  }
+		EditorGUI.BeginChangeCheck();
 
-  public void ShowFollowType()
-  {
-    MyEditorTools.BeginHorizontal();
-    interactibleObject.facade.GrabConfiguration.PrimaryAction.GetComponent<GrabInteractableFollowAction>().FollowTracking =
-      (GrabInteractableFollowAction.TrackingType)EditorGUILayout.EnumPopup("Follow Type", interactibleObject.facade.GrabConfiguration.PrimaryAction.GetComponent<GrabInteractableFollowAction>().FollowTracking);
+		var intVal =
+			(int)((GrabInteractableReceiver.ActiveType)EditorGUILayout.EnumPopup("Follow Type", (GrabInteractableReceiver.ActiveType)type.intValue));
 
-    MyEditorTools.ShowRefrenceButton(interactibleObject.facade.GrabConfiguration.PrimaryAction.gameObject);
-    MyEditorTools.EndHorizontal();
-  }
+		if (EditorGUI.EndChangeCheck())
+		{
+			Undo.RecordObject(grabRecciver.targetObject, "Changed HoldType");
+			type.intValue = intVal;
+			grabRecciver.ApplyModifiedProperties();
+		}
 
-  public void ShowOffsetType()
-  {
-    MyEditorTools.BeginHorizontal();
-    interactibleObject.facade.GrabConfiguration.PrimaryAction.GetComponent<GrabInteractableFollowAction>().GrabOffset =
-      (GrabInteractableFollowAction.OffsetType)EditorGUILayout.EnumPopup("Grab Offset", interactibleObject.facade.GrabConfiguration.PrimaryAction.GetComponent<GrabInteractableFollowAction>().GrabOffset);
+		MyEditorTools.ShowRefrenceButton(interactibleObject.facade.GrabConfiguration.PrimaryAction.gameObject);
+		MyEditorTools.EndHorizontal();
+	}
 
-    MyEditorTools.ShowRefrenceButton(interactibleObject.facade.GrabConfiguration.PrimaryAction.gameObject);
+	public void ShowFollowType()
+	{
+		MyEditorTools.BeginHorizontal();
 
-    MyEditorTools.EndHorizontal();
-  }
+		var followAction = new SerializedObject(interactibleObject.facade.GrabConfiguration.PrimaryAction.GetComponent<MyGrabInteractableFollowAction>());
+		var type = followAction.FindProperty("_followTracking");
 
-  #endregion
+		EditorGUI.BeginChangeCheck();
 
-  public static void ShowList(SerializedProperty list)
-  {
-    if (EditorGUILayout.PropertyField(list, false))
-    {
-      for (int i = 0; i < list.arraySize; i++)
-      {
-        EditorGUILayout.PropertyField(list.GetArrayElementAtIndex(i), new GUIContent("Name: " + i));
-      }
-    }
-  }
+		var intVal =
+			(int)((GrabInteractableFollowAction.TrackingType)EditorGUILayout.EnumPopup("Follow Type", (GrabInteractableFollowAction.TrackingType)type.intValue));
 
-  public void ShowMeshColRefrence()
-  {
-    if (GUILayout.Button("Mesh & Colliders"))
-    {
-      Selection.activeObject = interactibleObject.meshContainer;
-      SceneView.FrameLastActiveSceneView();
-    }
-  }
+		if (EditorGUI.EndChangeCheck())
+		{
+			Undo.RecordObject(followAction.targetObject, "Changed FollowType");
+			type.intValue = intVal;
+			followAction.ApplyModifiedProperties();
+		}
 
-  public void ShowSecondaryActionType()
-  {
-    if (!facade.GrabConfiguration.SecondaryAction)
-    {
-      if (GUILayout.Button("Generate Secondary Action"))
-        SwitchSecondaryAction();
-    }
-    else
-    {
-      MyEditorTools.BeginHorizontal();
+		MyEditorTools.ShowRefrenceButton(interactibleObject.facade.GrabConfiguration.PrimaryAction.gameObject);
+		MyEditorTools.EndHorizontal();
+	}
 
-      var previous = interactibleObject.secondaryAction;
+	public void ShowOffsetType()
+	{
+		MyEditorTools.BeginHorizontal();
 
-      interactibleObject.secondaryAction = (InteractibleObject.SecondaryTypes)EditorGUILayout.EnumPopup("SecondaryAction", interactibleObject.secondaryAction);
+		var followAction = new SerializedObject(interactibleObject.facade.GrabConfiguration.PrimaryAction.GetComponent<MyGrabInteractableFollowAction>());
+		var type = followAction.FindProperty("_grabOffset");
 
-      if (interactibleObject.secondaryAction != previous)
-        SwitchSecondaryAction();
+		EditorGUI.BeginChangeCheck();
+
+		var intVal =
+			(int)((GrabInteractableFollowAction.OffsetType)EditorGUILayout.EnumPopup("Follow Type", (GrabInteractableFollowAction.OffsetType)type.intValue));
 
 
-      MyEditorTools.ShowRefrenceButton(facade.GrabConfiguration.SecondaryAction.gameObject);
+		if (EditorGUI.EndChangeCheck())
+		{
+			Undo.RecordObject(followAction.targetObject, "Changed OffsetType");
+			type.intValue = intVal;
+			followAction.ApplyModifiedProperties();
+		}
+
+		MyEditorTools.ShowRefrenceButton(interactibleObject.facade.GrabConfiguration.PrimaryAction.gameObject);
+
+		MyEditorTools.EndHorizontal();
+	}
+
+	#endregion
+
+	public static void ShowList(SerializedProperty list)
+	{
+		if (EditorGUILayout.PropertyField(list, false))
+		{
+			for (int i = 0; i < list.arraySize; i++)
+			{
+				EditorGUILayout.PropertyField(list.GetArrayElementAtIndex(i), new GUIContent("Name: " + i));
+			}
+		}
+	}
+
+	public void ShowMeshColRefrence()
+	{
+		if (GUILayout.Button("Mesh & Colliders"))
+		{
+			Selection.activeObject = interactibleObject.meshContainer;
+			SceneView.FrameLastActiveSceneView();
+		}
+	}
+
+	public void ShowSecondaryActionType()
+	{
+		if (!facade.GrabConfiguration.SecondaryAction)
+		{
+			if (GUILayout.Button("Generate Secondary Action"))
+				SwitchSecondaryAction();
+		}
+		else
+		{
+			if (interactibleObject.GetComponent<ClimbableObject>())
+				return;
+
+			MyEditorTools.BeginHorizontal();
+
+			var secondaryType = (InteractibleObject.SecondaryTypes)EditorGUILayout.EnumPopup("SecondaryAction", interactibleObject.secondaryAction);
+
+			if (interactibleObject.secondaryAction != secondaryType)
+			{
+				Undo.RecordObject(interactibleObject, "Changed Secondary Type");
+				interactibleObject.secondaryAction = secondaryType;
+				SwitchSecondaryAction();
+				Undo.CollapseUndoOperations(Undo.GetCurrentGroup());
+			}
 
 
-      MyEditorTools.EndHorizontal();
-    }
-  }
+			MyEditorTools.ShowRefrenceButton(facade.GrabConfiguration.SecondaryAction.gameObject);
 
-  public void SwitchSecondaryAction()
-  {
-    Transform secondaryActionParent = facade.GrabConfiguration.transform.GetChild(2).GetChild(1);
 
-    if (facade.GrabConfiguration.SecondaryAction)
-      DestroyImmediate(facade.GrabConfiguration.SecondaryAction.gameObject);
-    Debug.Log(interactibleObject.secondaryAction);
-    facade.GrabConfiguration.SecondaryAction = Instantiate(PrefabsXR.GetActionByEnum(interactibleObject.secondaryAction), secondaryActionParent).GetComponent<GrabInteractableAction>();
-    facade.GrabConfiguration.SecondaryAction.gameObject.name = interactibleObject.secondaryAction.ToString();
-  }
+			MyEditorTools.EndHorizontal();
+		}
+	}
+
+	public void SwitchSecondaryAction()
+	{
+		if (PrefabsXR.inDev)
+			Debug.Log(interactibleObject.secondaryAction);
+
+
+		if (facade.GrabConfiguration.SecondaryAction)
+		{
+			Undo.RecordObject(facade.GrabConfiguration.SecondaryAction.gameObject, "Changed Secondary Type");
+			facade.GrabConfiguration.SecondaryAction.gameObject.SetActive(false);
+		}
+
+		var actions = facade.GrabConfiguration.GetComponentsInChildren<InteractibleAction>(true);
+
+		foreach (var action in actions)
+		{
+			if (action.type == interactibleObject.secondaryAction)
+			{
+				Undo.RecordObjects(new Object[] { action.gameObject, facade.GrabConfiguration.SecondaryAction.gameObject }, "Changed Secondary Type");
+				action.gameObject.SetActive(true);
+				Undo.RecordObject(facade.GrabConfiguration, "Changed Secondary Type");
+				var grabConfigObject = new SerializedObject(facade.GrabConfiguration);
+
+				var secondaryActionProperty = grabConfigObject.FindProperty("_secondaryAction");
+				secondaryActionProperty.objectReferenceValue = action.gameObject.GetComponent<GrabInteractableAction>();
+
+				grabConfigObject.ApplyModifiedProperties();
+				//facade.GrabConfiguration.SecondaryAction = action.gameObject.GetComponent<GrabInteractableAction>();
+			}
+		}
+	}
 }
 
 #endif

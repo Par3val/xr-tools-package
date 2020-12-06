@@ -1,44 +1,49 @@
-﻿using System;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEditor;
 using VRTK.Prefabs.CameraRig.UnityXRCameraRig.Input;
 using Zinnia.Data.Type;
 using UnityEngine.Events;
+using System;
+using System.Collections.Generic;
 
-[Serializable]
-public class InputMapping
+[System.Serializable, ExecuteInEditMode]
+public class InputMapping : MonoBehaviour
 {
+	[SerializeField]
 	public string mapName = "New Map";
 	public AxisType axisType;
+
+	public InputManager manager;
 
 	public InputTypeButton typeButton;
 	public InputTypeAxis1D type1D;
 	public InputTypeAxis2D type2D;
 
-	public bool edtiorOpen = false;
-
+	public bool editorOpen;
+	public bool interacted;
 
 	bool isLeft(InputManager.hands handedness) => handedness == InputManager.hands.Left;
-	bool prevState = false;
+	[SerializeField]
+	bool prevState;
 
 	UnityAxis1DAction axis1D;
 	UnityAxis2DAction axis2D;
 	UnityButtonAction button;
 
-	public FloatRange activationRange;
+	public Vector2 activationRange;
 
 
 	[Tooltip("if not a 1d axis input will never be invokeed")]
-	public UnityEventVoid Activated = new UnityEventVoid();
+	public UnityEventVoid Activated;
 	[Tooltip("if not a 1d axis input will never be invokeed")]
-	public UnityEventVoid Deactivated = new UnityEventVoid();
+	public UnityEventVoid Deactivated;
 
-	public UnityEventButton UpdateBool = new UnityEventButton();
-	public UnityEventFloat Update1D = new UnityEventFloat();
+	public UnityEventButton UpdateBool;
+	public UnityEventFloat Update1D;
 	[Tooltip("if not a 2d axis input will never be invokeed")]
-	public UnityEventAxis2D Moved2D = new UnityEventAxis2D();
-	public UnityEventFloat Moved2DX = new UnityEventFloat();
-	public UnityEventFloat Moved2DY = new UnityEventFloat();
+	public UnityEventAxis2D Moved2D;
+	public UnityEventFloat Moved2DX;
+	public UnityEventFloat Moved2DY;
 
 
 	#region UnityEvents
@@ -56,9 +61,9 @@ public class InputMapping
 
 	#region AxisOptions
 
-	[Serializable]
+	[System.Serializable]
 	public enum AxisType { Button, Axis1D, Axis2D }
-	[Serializable]
+	[System.Serializable]
 	public enum InputTypeButton
 	{
 		ThumbClick, ThumbTouch,
@@ -66,39 +71,65 @@ public class InputMapping
 		BottomClick, BottomTouch,
 		Menu
 	}
-	[Serializable]
+	[System.Serializable]
 	public enum InputTypeAxis1D { Trigger, Hand }
-	[Serializable]
+	[System.Serializable]
 	public enum InputTypeAxis2D { Thumb2D }
 
 	#endregion
 
-	public InputMapping(string _name)
+	public void Setup(string _name = "")
 	{
-		mapName = _name;
-		activationRange = new FloatRange(.8f, 1);
+		if (string.IsNullOrEmpty(_name))
+			mapName = _name;
+
+		editorOpen = false;
+		prevState = false;
+
+		button = null;
+		axis1D = null;
+		axis2D = null;
+
+		axisType = AxisType.Button;
+
+		typeButton = InputTypeButton.ThumbClick;
+		type1D = InputTypeAxis1D.Trigger;
+		type2D = InputTypeAxis2D.Thumb2D;
+
+		Activated = new UnityEventVoid();
+		Deactivated = new UnityEventVoid();
+
+		UpdateBool = new UnityEventButton();
+		Update1D = new UnityEventFloat();
+
+		Moved2D = new UnityEventAxis2D();
+		Moved2DX = new UnityEventFloat();
+		Moved2DY = new UnityEventFloat();
 	}
 
-	public void Setup(InputManager.hands handedness, GameObject actionContainer)
+	public void Start()
 	{
-		switch (axisType)
-		{
-			case AxisType.Button:
-				button = actionContainer.AddComponent<UnityButtonAction>();
-				button.KeyCode = ButtonTranslation(handedness);
-				button.ValueChanged.AddListener(ButtonUpdate);
-				break;
-			case AxisType.Axis1D:
-				axis1D = actionContainer.AddComponent<UnityAxis1DAction>();
-				axis1D.AxisName = Axis1DTranslation(handedness);
-				axis1D.ValueChanged.AddListener(Axis1DUpdate);
-				break;
-			case AxisType.Axis2D:
-				axis2D = actionContainer.AddComponent<UnityAxis2DAction>();
-				axis2D = Axis2DTranslationVRTK(axis2D, handedness);
-				axis2D.ValueChanged.AddListener(Axis2DUpdate);
-				break;
-		}
+		manager = GetComponentInParent<InputManager>();
+		if (manager && Application.isPlaying)
+			switch (axisType)
+			{
+				case AxisType.Button:
+					button = gameObject.AddComponent<UnityButtonAction>();
+					button.KeyCode = ButtonTranslation(manager.handedness);
+					button.ValueChanged.AddListener(ButtonUpdate);
+					break;
+				case AxisType.Axis1D:
+					axis1D = gameObject.AddComponent<UnityAxis1DAction>();
+					axis1D.AxisName = Axis1DTranslation(manager.handedness);
+					axis1D.ValueChanged.AddListener(Axis1DUpdate);
+					break;
+				case AxisType.Axis2D:
+					axis2D = gameObject.AddComponent<UnityAxis2DAction>();
+					axis2D = Axis2DTranslationVRTK(axis2D, manager.handedness);
+					axis2D.ValueChanged.AddListener(Axis2DUpdate);
+					break;
+			}
+		activationRange = new Vector2(.8f, 1);
 	}
 
 	public void ButtonUpdate(bool data)
@@ -118,9 +149,9 @@ public class InputMapping
 	public void Axis1DUpdate(float data)
 	{
 		Update1D.Invoke(data);
-		bool active = data >= activationRange.minimum && data <= activationRange.maximum;
+		bool active = data >= activationRange.x && data <= activationRange.y;
 
-		if(active != prevState)
+		if (active != prevState)
 		{
 			if (active)
 				Activated.Invoke();
@@ -161,7 +192,7 @@ public class InputMapping
 		}
 	}
 
-	//Oclus
+	//Oculus
 	/*
    * Click 8 T:16 : R:9 T:17
    * 
@@ -194,4 +225,74 @@ public class InputMapping
 
 		return axis;
 	}
+
 }
+
+//public SerializableMap Serialize()
+//{
+//	int _ref = 0;
+
+//	switch (axisType)
+//	{
+//		case AxisType.Button:
+//			_ref = (int)typeButton;
+//			break;
+//		case AxisType.Axis1D:
+//			_ref = (int)type1D;
+//			break;
+//		case AxisType.Axis2D:
+//			_ref = (int)type2D;
+//			break;
+//	}
+
+//	return new SerializableMap(mapName, (int)axisType, _ref, new Vector2(activationRange.x, activationRange.y));
+//}
+
+//public void DeSerialize(SerializableMap serializedMap)
+//{
+//	mapName = serializedMap.name;
+//	axisType = (AxisType)serializedMap.axis;
+
+//	switch (axisType)
+//	{
+//		case AxisType.Button:
+//			typeButton = (InputTypeButton)serializedMap.refrence;
+//			break;
+//		case AxisType.Axis1D:
+//			type1D = (InputTypeAxis1D)serializedMap.refrence;
+//			break;
+//		case AxisType.Axis2D:
+//			type2D = (InputTypeAxis2D)serializedMap.refrence;
+//			break;
+//	}
+//}
+
+//public void OnBeforeSerialize()
+//{
+//	serialized = Serialize();
+//	//Debug.Log(serialized.name + " Serialized");
+//}
+
+
+//public void OnAfterDeserialize()
+//{
+//	DeSerialize(serialized);
+//	//Debug.Log(serialized.name + " DeSerialized");
+//}
+
+//[System.Serializable]
+//public class SerializableMap
+//{
+//	public string name;
+//	public int axis;
+//	public int refrence;
+//	public Vector2 activationRange;
+
+//	public SerializableMap(string _name, int _axis, int _ref, Vector2 _range)
+//	{
+//		name = _name;
+//		axis = _axis;
+//		refrence = _ref;
+//		activationRange = _range;
+//	}
+//}

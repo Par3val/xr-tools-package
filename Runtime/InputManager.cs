@@ -1,14 +1,17 @@
-﻿using System;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEditor;
 using Zinnia.Action;
 using VRTK.Prefabs.Interactions.Interactors;
+using System.Linq;
+using System.Collections.Generic;
+using UnityEngine.UI;
+//using System.Linq;
 
-[RequireComponent(typeof(BooleanAction)), ExecuteInEditMode]
+[RequireComponent(typeof(GrabAction)), ExecuteInEditMode, System.Serializable]
 public class InputManager : MonoBehaviour
 {
 
-	[Serializable]
+	[System.Serializable]
 	public enum hands { Right, Left };
 	public hands handedness;
 
@@ -20,7 +23,7 @@ public class InputManager : MonoBehaviour
 
 	public bool eventsOpen;
 
-	public void Awake()
+	public void OnEnable()
 	{
 		string parName = transform.parent.name.Substring(0, 1);
 
@@ -38,27 +41,23 @@ public class InputManager : MonoBehaviour
 		if (GetComponent<InteractorFacade>().GrabAction == null)
 			GetComponent<InteractorFacade>().GrabAction = grabAction;
 
-		if (Application.isPlaying)
-		{
-			foreach (var InputMap in inputMappings)
-			{
-				InputMap.Setup(handedness, gameObject);
+		RefreshInputMappings();
 
-				if (InputMap.mapName.Contains("Grab"))
+		if (Application.isPlaying)
+			for (int i = 0; i < inputMappings.Length; i++)
+				if (inputMappings[i].mapName.Contains("Grab"))
 				{
-					InputMap.Activated.AddListener(GrabActivated);
-					InputMap.Deactivated.AddListener(GrabDeactivated);
+					inputMappings[i].Activated.AddListener(GrabActivated);
+					inputMappings[i].Deactivated.AddListener(GrabDeactivated);
 				}
-				//if (InputMap.name.Contains("Move"))
-				//{
-				//  InputMap.Moved2D.AddListener(UpdateMove);
-				//}
-				//if (InputMap.name.Contains("Rotate"))
-				//{
-				//  InputMap.Moved2D.AddListener(UpdateRot);
-				//}
-			}
-		}
+	}
+
+	public void RefreshInputMappings()
+	{
+		inputMappings = GetComponentsInChildren<InputMapping>();
+
+		if (inputMappings == null)
+			inputMappings = new InputMapping[0];
 	}
 
 	public void GrabActivated()
@@ -69,42 +68,18 @@ public class InputManager : MonoBehaviour
 	{
 		grabAction.Receive(false);
 	}
-
-	public void AddMap(InputMapping newMap)
-	{
-		InputMapping[] tempMappings = new InputMapping[inputMappings.Length + 1];
-		for (int i = 0; i < inputMappings.Length; i++)
-		{
-			tempMappings[i] = inputMappings[i];
-		}
-
-		tempMappings[inputMappings.Length] = newMap;
-
-		inputMappings = tempMappings;
-
-	}
-
-
-	//public void UpdateMove(Vector2 data)
-	//{
-	//  LocomotionAxisCalculator.LateralAxis.Receive(data.x);
-	//  LocomotionAxisCalculator.LongitudinalAxis.Receive(data.y);
-	//}
-	//public void UpdateRot(Vector2 data)
-	//{
-	//  LocomotionAxisCalculator.LateralAxis.Receive(data.x);
-	//}
 }
 
 #if UNITY_EDITOR
 
 [CustomEditor(typeof(InputManager))]
-public class InputManagerInspector : Editor
+public class InputManagerEditor : Editor
 {
 	InputManager manager;
 
-	private static GUILayoutOption miniButtonWidth = GUILayout.Width(25f);
-	//private static Text miniButtonWidth = GUILayout.Width(25f);
+	static GUILayoutOption miniButtonWidth = GUILayout.Width(25f);
+
+	bool hasGrab;
 
 	public override void OnInspectorGUI()
 	{
@@ -112,68 +87,33 @@ public class InputManagerInspector : Editor
 
 		//Input Mappings
 
-		GUILayout.Label($"Input Mappings: {manager.inputMappings.Length}");
+		//GUILayout.Label($"Input Mappings: {manager.inputMappings.Length}");
 
 		if (manager.grabAction == null)
 			((InputManager)target).grabAction = ((InputManager)target).GetComponent<BooleanAction>();
 
 		if (manager.inputMappings == null)
-			manager.inputMappings = new InputMapping[0];
+			manager.RefreshInputMappings();
 
-		bool hasGrab = false;
+		hasGrab = false;
 
 		if (manager.inputMappings.Length > 0)
 		{
-			SerializedObject serialManager = new SerializedObject(target);
-			SerializedProperty inputMappingsProperty = serialManager.FindProperty("inputMappings");
-
-			serialManager.Update();
-
-
-			for (int i = 0; i < manager.inputMappings.Length; i++)
-			{
-				MyEditorTools.BeginHorizontal();
-
-				manager.inputMappings[i].edtiorOpen = EditorGUILayout.BeginFoldoutHeaderGroup(manager.inputMappings[i].edtiorOpen, manager.inputMappings[i].mapName);
-				//manager.inputMappings[i].mapName = EditorGUILayout.TextArea(manager.inputMappings[i].mapName, EditorStyles.label);
-				EditorGUILayout.EndFoldoutHeaderGroup();
-
-				if (ShowRemoveButton(manager.inputMappings[i]))
-					return;
-
-				MyEditorTools.EndHorizontal();
-
-				if (manager.inputMappings.Length > 0)
-				{
-					if (manager.inputMappings[i].edtiorOpen)
-					{
-						ShowMap(manager.inputMappings[i], inputMappingsProperty.GetArrayElementAtIndex(i));
-					}
-				}
-
-				if (manager.inputMappings[i].mapName.Contains("Grab"))
-					hasGrab = true;
-			}
-
-			serialManager.ApplyModifiedProperties();
+			ShowInputMappings();
 		}
 
 		if (!hasGrab)
-		{
 			if (GUILayout.Button("Add Grab"))
 				AddGrab();
-		}
 
 		if (GUILayout.Button("Add InputMap"))
-		{
-			manager.AddMap(new InputMapping("New Map"));
-		}
+			AddMap("New Map");
 
 		//Grab Events
 		GUILayout.Space(10);
 
-		manager.eventsOpen = EditorGUILayout.BeginFoldoutHeaderGroup(manager.eventsOpen, "Successfull Grab Events");
-		EditorGUILayout.EndFoldoutHeaderGroup();
+		manager.eventsOpen = EditorGUILayout.Foldout(manager.eventsOpen, "Successfull Grab Events");
+
 		if (manager.eventsOpen)
 		{
 			Transform grabEvent = manager.transform.GetChild(1).GetChild(1).GetChild(1).GetChild(0);
@@ -186,61 +126,219 @@ public class InputManagerInspector : Editor
 
 		GUILayout.Space(10);
 	}
-
-	public void ShowMap(InputMapping map, SerializedProperty property)
+	void ShowInputMappings()
 	{
+		GUIStyle windowSkin = new GUIStyle(GUI.skin.window);
+		windowSkin.alignment = TextAnchor.UpperLeft;
+		windowSkin.padding = new RectOffset(15, 0, 0, 0);
+
+		for (int i = 0; i < manager.inputMappings.Length; i++)
+		{
+			if (manager.inputMappings[i] && Event.current.type != EventType.ValidateCommand)
+			{
+				EditorGUILayout.BeginVertical(windowSkin);
+				EditorGUILayout.BeginHorizontal();
+
+				manager.inputMappings[i].editorOpen = EditorGUILayout.Foldout(manager.inputMappings[i].editorOpen, manager.inputMappings[i].mapName, true);
+
+
+				if (ShowRemoveButton(manager.inputMappings[i]))
+					return;
+
+				GUILayout.Space(5);
+				EditorGUILayout.EndHorizontal();
+
+
+				if (manager.inputMappings[i].editorOpen)
+				{
+					var mapObject = new SerializedObject(manager.inputMappings[i]);
+					ShowMap(ref manager.inputMappings[i], mapObject);
+
+					mapObject.ApplyModifiedProperties();
+				}
+
+
+				if (!string.IsNullOrEmpty(manager.inputMappings[i].mapName))
+					if (manager.inputMappings[i].mapName.Contains("Grab"))
+						hasGrab = true;
+				EditorGUILayout.EndVertical();
+			}
+			else
+			{
+				manager.RefreshInputMappings();
+			}
+		}
+	}
+
+
+	public void ShowMap(ref InputMapping map, SerializedObject property)
+	{
+		var mapName = property.FindProperty("mapName");
+		var axisType = property.FindProperty("axisType");
+
 		EditorGUILayout.BeginHorizontal();
+
 		EditorGUILayout.LabelField("Name: ", GUILayout.Width(37));
-		map.mapName = EditorGUILayout.TextField(map.mapName, EditorStyles.label);
+
+		mapName.stringValue = EditorGUILayout.TextField(mapName.stringValue, EditorStyles.label);
+
 		EditorGUILayout.EndHorizontal();
 
 
-		map.axisType = (InputMapping.AxisType)EditorGUILayout.EnumPopup("Input Type: ", map.axisType);
 
-		switch (map.axisType)
+		EditorGUILayout.BeginHorizontal();
+		EditorGUILayout.LabelField("Input Type: ", GUILayout.Width(70));
+		axisType.enumValueIndex = (int)((InputMapping.AxisType)EditorGUILayout.EnumPopup((InputMapping.AxisType)axisType.enumValueIndex));
+
+		switch ((InputMapping.AxisType)axisType.enumValueIndex)
 		{
 			case InputMapping.AxisType.Button:
-				map.typeButton = (InputMapping.InputTypeButton)EditorGUILayout.EnumPopup("Which Button: ", map.typeButton);
+				var typeButton = property.FindProperty("typeButton");
+				typeButton.enumValueIndex = (int)(InputMapping.InputTypeButton)EditorGUILayout.EnumPopup(/*"Which Button: ", */(InputMapping.InputTypeButton)typeButton.enumValueIndex);
+				EditorGUILayout.EndHorizontal();
 				break;
-			case InputMapping.AxisType.Axis1D:
-				map.type1D = (InputMapping.InputTypeAxis1D)EditorGUILayout.EnumPopup("Which Axis1D: ", map.type1D);
-				MyEditorTools.BeginHorizontal();
 
+			case InputMapping.AxisType.Axis1D:
+				var type1D = property.FindProperty("type1D");
+				type1D.enumValueIndex = (int)(InputMapping.InputTypeAxis1D)EditorGUILayout.EnumPopup(/*"Which Axis1D: ", */(InputMapping.InputTypeAxis1D)type1D.enumValueIndex);
+				EditorGUILayout.EndHorizontal();
+
+				var range = property.FindProperty("activationRange");
+				float tempMin = range.vector2Value.x;
+				float tempMax = range.vector2Value.y;
+
+				EditorGUILayout.BeginHorizontal();
 				GUILayout.Label("Activation Range");
-				map.activationRange.minimum = EditorGUILayout.FloatField(map.activationRange.minimum, MyEditorTools.miniFeildWidth);
+				tempMin = EditorGUILayout.FloatField(tempMin, MyEditorTools.miniFeildWidth);
 
-				EditorGUILayout.MinMaxSlider(ref map.activationRange.minimum, ref map.activationRange.maximum, 0, 1);
+				EditorGUILayout.MinMaxSlider(ref tempMin, ref tempMax, 0, 1);
 
-				map.activationRange.maximum = EditorGUILayout.FloatField(map.activationRange.maximum, MyEditorTools.miniFeildWidth);
+				tempMax = EditorGUILayout.FloatField(tempMax, MyEditorTools.miniFeildWidth);
 
-				MyEditorTools.EndHorizontal();
+				range.vector2Value = new Vector2(tempMin, tempMax);
+				EditorGUILayout.EndHorizontal();
 				break;
+
 			case InputMapping.AxisType.Axis2D:
-				map.type2D = (InputMapping.InputTypeAxis2D)EditorGUILayout.EnumPopup("Which Axis2D: ", map.type2D);
+				var type2d = property.FindProperty("type2D");
+				type2d.enumValueIndex = (int)(InputMapping.InputTypeAxis2D)EditorGUILayout.EnumPopup(/*"Which Axis2D: ", */(InputMapping.InputTypeAxis2D)type2d.enumValueIndex);
+				EditorGUILayout.EndHorizontal();
+				break;
+
+			default:
+				EditorGUILayout.EndHorizontal();
 				break;
 		}
 
-		switch (map.axisType)
+		EditorGUI.indentLevel++;
+		switch ((InputMapping.AxisType)axisType.enumValueIndex)
 		{
 			case InputMapping.AxisType.Button:
-				EditorGUILayout.PropertyField(property.FindPropertyRelative("UpdateBool"));
-
-				EditorGUILayout.PropertyField(property.FindPropertyRelative("Activated"));
-				EditorGUILayout.PropertyField(property.FindPropertyRelative("Deactivated"));
+				EditorGUILayout.PropertyField(property.FindProperty("UpdateBool"));
+				EditorGUILayout.PropertyField(property.FindProperty("Activated"));
+				EditorGUILayout.PropertyField(property.FindProperty("Deactivated"));
 				break;
 			case InputMapping.AxisType.Axis1D:
-				EditorGUILayout.PropertyField(property.FindPropertyRelative("Update1D"));
-
-				EditorGUILayout.PropertyField(property.FindPropertyRelative("Activated"));
-				EditorGUILayout.PropertyField(property.FindPropertyRelative("Deactivated"));
+				EditorGUILayout.PropertyField(property.FindProperty("Update1D"));
+				EditorGUILayout.PropertyField(property.FindProperty("Activated"));
+				EditorGUILayout.PropertyField(property.FindProperty("Deactivated"));
 				break;
 			case InputMapping.AxisType.Axis2D:
-				EditorGUILayout.PropertyField(property.FindPropertyRelative("Moved2D"));
-				EditorGUILayout.PropertyField(property.FindPropertyRelative("Moved2DX"));
-				EditorGUILayout.PropertyField(property.FindPropertyRelative("Moved2DY"));
+				EditorGUILayout.PropertyField(property.FindProperty("Moved2D"));
+				EditorGUILayout.PropertyField(property.FindProperty("Moved2DX"));
+				EditorGUILayout.PropertyField(property.FindProperty("Moved2DY"));
 				break;
 		}
+		EditorGUI.indentLevel--;
+	}
+	private void ShowValueEvent(BooleanAction booleanAction)
+	{
+		var serializedAction = new SerializedObject(booleanAction);
 
+		var activated = serializedAction.FindProperty("Activated");
+		var valueChanged = serializedAction.FindProperty("ValueChanged");
+		var deactivated = serializedAction.FindProperty("Deactivated");
+		EditorGUILayout.PropertyField(activated);
+		EditorGUILayout.PropertyField(valueChanged);
+		EditorGUILayout.PropertyField(deactivated);
+
+		serializedAction.ApplyModifiedProperties();
+	}
+
+
+
+	public InputMapping AddMap(string newName)
+	{
+		return InputManagerEditor.AddMap(ref manager, newName);
+	}
+	public static InputMapping AddMap(ref InputManager _manager, string newName)
+	{
+		var parent = _manager.transform.Find("InputMappings");
+		if (!parent)
+		{
+			new GameObject("InputMappings").transform.parent = _manager.transform;
+			return AddMap(ref _manager, newName);
+		}
+		InputMapping tempMapping = (InputMapping)Undo.AddComponent(parent.gameObject, typeof(InputMapping));
+		Undo.SetCurrentGroupName("Added Input Map" + newName);
+		tempMapping.mapName = newName;
+		Undo.RecordObject(_manager, "Added Input Map" + newName);
+		_manager.RefreshInputMappings();
+		Undo.CollapseUndoOperations(Undo.GetCurrentGroup());
+		// = parent.gameObject.AddComponent<>();
+		//var tempMapping = new GameObject(newName, typeof(InputMapping)).GetComponent<InputMapping>();
+		//tempMapping.transform.parent = parent;
+		//, "Added Input Map"
+
+
+
+
+		//var tempList = _manager.inputMappings.ToList();
+		//tempList.Add(tempMapping);
+		//_manager.inputMappings = tempList.ToArray();
+		//Undo.RegisterCreatedObjectUndo(tempMapping, "Added Input Map");
+
+
+		return tempMapping;
+	}
+	public void RemoveMap(InputMapping relMap)
+	{
+
+		Undo.DestroyObjectImmediate(relMap);
+		Undo.SetCurrentGroupName("Removed Input Map");
+		Undo.RecordObject(manager, "Removed Input Map");
+		manager.RefreshInputMappings();
+		return;
+
+		////var tempList = manager.inputMappings.ToList();
+		////tempList.Remove(relMap);
+		////manager.inputMappings = tempList.ToArray();
+		//InputMapping[] tempMappings = new InputMapping[manager.inputMappings.Length - 1];
+
+		//int removeIndex = 0;
+
+		//for (int i = 0, o = 0; i < manager.inputMappings.Length; i++)
+		//{
+		//	if (manager.inputMappings[i] == relMap)
+		//	{
+		//		o = 1;
+		//		removeIndex = i;
+		//	}
+		//	else
+		//	{
+		//		tempMappings[i - o] = manager.inputMappings[i];
+		//	}
+		//}
+		//if (manager.inputMappings[removeIndex])
+		//	DestroyImmediate(manager.inputMappings[removeIndex].gameObject);
+		//manager.inputMappings = new InputMapping[tempMappings.Length];
+		//manager.inputMappings = tempMappings;
+	}
+	public void AddGrab()
+	{
+		InputMapping grabMapping = AddMap("Grab");
+		grabMapping.axisType = InputMapping.AxisType.Axis1D;
+		grabMapping.type1D = InputMapping.InputTypeAxis1D.Hand;
 	}
 
 	bool ShowRemoveButton(InputMapping mapping)
@@ -254,52 +352,18 @@ public class InputManagerInspector : Editor
 		return false;
 	}
 
-
-	public void RemoveMap(InputMapping relMap)
-	{
-		InputMapping[] tempMappings = new InputMapping[manager.inputMappings.Length - 1];
-
-		int removeIndex = 0;
-
-		for (int i = 0, o = 0; i < manager.inputMappings.Length; i++)
-		{
-			if (manager.inputMappings[i] == relMap)
-			{
-				o = 1;
-				removeIndex = i;
-			}
-			else
-			{
-				tempMappings[i - o] = manager.inputMappings[i];
-			}
-		}
-
-		manager.inputMappings = tempMappings;
-	}
-
-	private void ShowValueEvent(BooleanAction booleanAction)
-	{
-		var serializedAction = new SerializedObject(booleanAction);
-
-		var activated = serializedAction.FindProperty("Activated");
-		var valueChanged = serializedAction.FindProperty("ValueChanged");
-		var deactivated = serializedAction.FindProperty("Deactivated");
-
-		EditorGUILayout.PropertyField(activated);
-		EditorGUILayout.PropertyField(valueChanged);
-		EditorGUILayout.PropertyField(deactivated);
-
-		serializedAction.ApplyModifiedProperties();
-	}
-
-	public void AddGrab()
-	{
-		InputMapping grabMapping = new InputMapping("Grab");
-		grabMapping.axisType = InputMapping.AxisType.Axis1D;
-		grabMapping.type1D = InputMapping.InputTypeAxis1D.Hand;
-		manager.AddMap(grabMapping);
-	}
-
 }
 
 #endif
+//public static TSource[] ToArray<TSource>(this IEnumerable<TSource> source, int count)
+//{
+//	if (source == null) throw new System.ArgumentNullException("source");
+//	if (count < 0) throw new System.ArgumentOutOfRangeException("count");
+//	var array = new TSource[count];
+//	int i = 0;
+//	foreach (var item in source)
+//	{
+//		array[i++] = item;
+//	}
+//	return array;
+//}

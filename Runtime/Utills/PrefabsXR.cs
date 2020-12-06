@@ -1,14 +1,15 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.IO;
 
 #if UNITY_EDITOR
 using UnityEditor;
 using UnityEditor.PackageManager;
 #endif
 
-[ExecuteInEditMode]
-public class PrefabsXR
+[InitializeOnLoad, ExecuteInEditMode]
+public static class PrefabsXR
 {
 #if UNITY_EDITOR
 	public static bool inDev = false;
@@ -39,6 +40,12 @@ public class PrefabsXR
 			return null;
 
 		return (GameObject)AssetDatabase.LoadAssetAtPath(genericPath + path, typeof(GameObject));
+	}
+
+
+	static PrefabsXR()
+	{
+		inDev = !System.IO.Directory.Exists(@"Packages/com.shadowsoptional.xr-tools");
 	}
 
 	//[MenuItem("Component/XR-Tools/Toggle Devmode")]

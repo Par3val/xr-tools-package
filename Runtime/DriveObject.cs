@@ -30,11 +30,11 @@ public class DriveObject : MonoBehaviour
 
 	#region Bools
 
-	public bool drivetypeBool = true;
-	public bool driveBool = true;
-	public bool eventsBool = true;
-	public bool interactibleBool = false;
-	public bool previewBool = false;
+	public bool drivetypeBool;
+	public bool driveBool;
+	public bool eventsBool;
+	public bool interactibleBool;
+	public bool previewBool;
 	public List<bool> ValueEventsBools;
 
 	#endregion
@@ -139,7 +139,7 @@ public class DriveObject : MonoBehaviour
 		}
 	}
 
-	
+
 
 	public void SetPreviewDrivePosition(float targetValue)
 	{
@@ -226,27 +226,16 @@ public class DriveObjectInspector : Editor
 {
 	private static GUILayoutOption miniButtonWidth = GUILayout.Width(25f);
 	private static GUILayoutOption miniFeildWidth = GUILayout.Width(50f);
-	private static string driveWarning = "WARNING WILL LOSE ALL CHNAGES IF CHANGED";
+	private static string driveWarning = " (WARNING: WILL LOSE ALL CHNAGES IF CHANGED)";
 
 	DriveObject drive;
 
 	float previewValue = 0.5f;
 
-	private void OnEnable()
-	{
-		drive = (DriveObject)target;
-		
-		if (PrefabUtility.GetPrefabType(target) == PrefabType.PrefabInstance)
-		{
-			PrefabUtility.UnpackPrefabInstance(drive.transform.root.gameObject, PrefabUnpackMode.Completely, InteractionMode.AutomatedAction);
-			return;
-		}
-	}
-
 	public void OnSceneGUI()
 	{
 		drive = (DriveObject)target;
-		
+
 		if (drive.hasDrive && !Application.isPlaying)
 			ShowPreview();
 	}
@@ -273,12 +262,18 @@ public class DriveObjectInspector : Editor
 
 		MyEditorTools.BeginHorizontal();
 
-		drive.interactibleBool = EditorGUILayout.BeginFoldoutHeaderGroup(drive.interactibleBool, "Interactible Object");
+		bool interactibleBool = EditorGUILayout.BeginFoldoutHeaderGroup(drive.interactibleBool, "Interactible Object");
 		EditorGUILayout.EndFoldoutHeaderGroup();
 
 		MyEditorTools.ShowRefrenceButton(drive.interactibleObject.gameObject);
 
 		MyEditorTools.EndHorizontal();
+
+		if (drive.interactibleBool != interactibleBool)
+		{
+			Undo.RecordObject(drive, "Toggled eventsBool");
+			drive.interactibleBool = interactibleBool;
+		}
 
 		if (drive.interactibleBool)
 		{
@@ -297,8 +292,14 @@ public class DriveObjectInspector : Editor
 
 	bool ShowDriveTypeSettings()
 	{
-		drive.drivetypeBool = EditorGUILayout.BeginFoldoutHeaderGroup(drive.drivetypeBool, "Drive Type" + (drive.drivetypeBool ? driveWarning : ""));
+		bool drivetypeBool = EditorGUILayout.BeginFoldoutHeaderGroup(drive.drivetypeBool, "Drive Type" + (drive.drivetypeBool ? driveWarning : ""));
 		EditorGUILayout.EndFoldoutHeaderGroup();
+
+		if (drive.drivetypeBool != drivetypeBool)
+		{
+			Undo.RecordObject(drive, "Toggled drivetypeBool");
+			drive.drivetypeBool = drivetypeBool;
+		}
 
 		if (!drive.dirDriveFacade && !drive.rotDriveFacade)
 		{
@@ -316,8 +317,28 @@ public class DriveObjectInspector : Editor
 			if (drive.rotDriveFacade)
 				EditorGUILayout.LabelField(drive.rotDriveFacade.name, EditorStyles.boldLabel);
 
-			var tempDriveType = (DriveObject.DriveType)EditorGUILayout.EnumPopup("Drive Type", drive.driveType);
-			var tempInteractType = (DriveObject.InteractType)EditorGUILayout.EnumPopup("Interact Type", drive.interactType);
+			EditorGUI.BeginChangeCheck();
+
+			EditorGUILayout.BeginHorizontal();
+
+			var tempDriveType = (DriveObject.DriveType)EditorGUILayout.EnumPopup(drive.driveType);
+			var tempInteractType = (DriveObject.InteractType)EditorGUILayout.EnumPopup(drive.interactType);
+
+			EditorGUILayout.EndHorizontal();
+
+			if(EditorGUI.EndChangeCheck())
+			{
+				Undo.SetCurrentGroupName("Change Drive Type");
+				Undo.RecordObjects(new UnityEngine.Object[] { drive, (drive.driveType == DriveObject.DriveType.Directional ? drive.dirDriveFacade.gameObject : drive.rotDriveFacade.gameObject) }, "Updated Drive Type");
+				drive.driveType = tempDriveType;
+				drive.interactType = tempInteractType;
+				SetupDrivePrefab();
+
+				Undo.CollapseUndoOperations(Undo.GetCurrentGroup());
+			}
+
+			//var tempDriveType = (DriveObject.DriveType)EditorGUILayout.EnumPopup("Drive Type", drive.driveType);
+			//var tempInteractType = (DriveObject.InteractType)EditorGUILayout.EnumPopup("Interact Type", drive.interactType);
 
 			if (tempDriveType != drive.driveType || tempInteractType != drive.interactType)
 			{
@@ -336,7 +357,7 @@ public class DriveObjectInspector : Editor
 
 		MyEditorTools.BeginHorizontal();
 
-		drive.driveBool = EditorGUILayout.BeginFoldoutHeaderGroup(drive.driveBool, "Drive Settings");
+		bool driveBool = EditorGUILayout.BeginFoldoutHeaderGroup(drive.driveBool, "Drive Settings");
 		EditorGUILayout.EndFoldoutHeaderGroup();
 
 		MyEditorTools.ShowRefrenceButton(
@@ -345,6 +366,12 @@ public class DriveObjectInspector : Editor
 			drive.rotDriveFacade.gameObject);
 
 		MyEditorTools.EndHorizontal();
+
+		if (drive.driveBool != driveBool)
+		{
+			Undo.RecordObject(drive, "Toggled driveBool");
+			drive.driveBool = driveBool;
+		}
 
 		if (drive.driveBool)
 		{
@@ -407,12 +434,12 @@ public class DriveObjectInspector : Editor
 		}
 	}
 
-	public void SetupDrivePrefab()
+	public GameObject SetupDrivePrefab()
 	{
 		if (drive.dirDriveFacade)
-			DestroyImmediate(drive.dirDriveFacade.gameObject);
+			Undo.DestroyObjectImmediate(drive.dirDriveFacade.gameObject);
 		if (drive.rotDriveFacade)
-			DestroyImmediate(drive.rotDriveFacade.gameObject);
+			Undo.DestroyObjectImmediate(drive.rotDriveFacade.gameObject);
 
 		GameObject prefab = PrefabsXR.GetDrive(drive.driveType, drive.interactType);
 		GameObject newDrive = Instantiate(prefab, drive.transform);
@@ -424,9 +451,10 @@ public class DriveObjectInspector : Editor
 		else
 			drive.rotDriveFacade = newDrive.GetComponent<RotationalDriveFacade>();
 
+		drive.interactibleObject = newDrive.GetComponentInChildren<InteractibleObject>();
 
-
-		OnEnable();
+		Undo.RegisterCreatedObjectUndo(newDrive.gameObject, "");
+		return newDrive.gameObject;
 	}
 
 	void ShowPreview()
@@ -456,12 +484,18 @@ public class DriveObjectInspector : Editor
 
 		MyEditorTools.BeginHorizontal();
 
-		drive.eventsBool = EditorGUILayout.BeginFoldoutHeaderGroup(drive.eventsBool, "Value Event Actions");
+		bool eventsBool = EditorGUILayout.BeginFoldoutHeaderGroup(drive.eventsBool, "Value Event Actions");
 		EditorGUILayout.EndFoldoutHeaderGroup();
 
 		MyEditorTools.ShowRefrenceButton(drive.valueEventsParent.gameObject);
 
 		MyEditorTools.EndHorizontal();
+
+		if (drive.eventsBool != eventsBool)
+		{
+			Undo.RecordObject(drive, "Toggled eventsBool");
+			drive.eventsBool = eventsBool;
+		}
 
 		GUILayout.Space(10);
 

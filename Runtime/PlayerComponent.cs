@@ -141,13 +141,13 @@ public class PlayerComponent : MonoBehaviour
 		GetComponent<TransformPositionMutator>().FacingDirection = rig.alias.HeadsetAlias.gameObject;
 		walk = GetComponent<AxesToVector3Facade>();
 
-		var walkMap = new InputMapping("Walk");
+		var walkMap = InputManagerEditor.AddMap(ref rig.leftHand, "Walk");
+		walkMap.Setup("Walk");
 		walkMap.axisType = InputMapping.AxisType.Axis2D;
 		walkMap.type2D = InputMapping.InputTypeAxis2D.Thumb2D;
 #if UNITY_EDITOR
 		UnityEventTools.AddPersistentListener(walkMap.Moved2D, GetComponent<Vector2Action>().Receive);
 #endif
-		rig.leftHand.AddMap(walkMap);
 	}
 	void SetupTeleport()
 	{
@@ -159,13 +159,13 @@ public class PlayerComponent : MonoBehaviour
 		GetComponent<TransformEulerRotationMutator>().Origin = rig.alias.HeadsetAlias.gameObject;
 		rotate = GetComponent<AxesToVector3Facade>();
 
-		var rotateMap = new InputMapping("Walk");
+		var rotateMap = InputManagerEditor.AddMap(ref rig.rightHand, "Rotate");
+		rotateMap.Setup("Rotate");
 		rotateMap.axisType = InputMapping.AxisType.Axis2D;
 		rotateMap.type2D = InputMapping.InputTypeAxis2D.Thumb2D;
 #if UNITY_EDITOR
 		UnityEventTools.AddPersistentListener(rotateMap.Moved2D, GetComponent<Vector2Action>().Receive);
 #endif
-		rig.rightHand.AddMap(rotateMap);
 	}
 	void SetupClimb()
 	{
@@ -312,6 +312,7 @@ class PlayerComponentEditor : Editor
 		var instantiatedObject = Instantiate(tempObject, _rig.transform).GetComponent<PlayerComponent>();
 		//var instantiatedObject = ((GameObject)PrefabUtility.InstantiatePrefab());
 		instantiatedObject.Setup(_rig);
+		Undo.RegisterCreatedObjectUndo(instantiatedObject.gameObject, $"Added {_type} Component");
 		return instantiatedObject;
 	}
 }

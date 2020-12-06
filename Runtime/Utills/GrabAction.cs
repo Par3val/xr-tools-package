@@ -15,7 +15,7 @@ public class GrabAction : BooleanAction
 
 	InteractorFacade hand;
 
-	private void Start()
+	private void Awake()
 	{
 		hand = GetComponent<InteractorFacade>();
 	}

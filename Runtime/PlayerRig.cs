@@ -34,6 +34,7 @@ public class PlayerRig : MonoBehaviour
 	#endregion
 
 	//PlayerComponentsBools { Walk, Teleport, Rotate, Climb, PhysicalBody, Other }
+
 	public PlayerComponent walk;
 	public PlayerComponent rotate;
 	public PlayerComponent teleport;
@@ -71,27 +72,7 @@ public class PlayerRig : MonoBehaviour
 
 		return tempArray;
 	}
-	public void SetPlayerComponentsInRig(PlayerComponent component)
-	{
-		switch (component.type)
-		{
-			case PlayerComponent.ComponentTypes.Walk:
-				walk = component;
-				break;
-			case PlayerComponent.ComponentTypes.Teleport:
-				teleport = component;
-				break;
-			case PlayerComponent.ComponentTypes.Rotate:
-				rotate = component;
-				break;
-			case PlayerComponent.ComponentTypes.Climb:
-				climb = component;
-				break;
-			case PlayerComponent.ComponentTypes.PhysicalBody:
-				physicalBody = component;
-				break;
-		}
-	}
+
 
 	public void SwitchRigs()
 	{
@@ -137,16 +118,16 @@ public class PlayerRigInspector : Editor
 		rig.rightHand = rig.alias.RightControllerAlias.GetComponentInChildren<InputManager>();
 
 		if (!System.Enum.IsDefined(typeof(InputManager.hands), rig.leftHand.handedness))
-			rig.leftHand.Awake();
+			rig.leftHand.OnEnable();
 
 		if (!System.Enum.IsDefined(typeof(InputManager.hands), rig.rightHand.handedness))
-			rig.rightHand.Awake();
+			rig.rightHand.OnEnable();
 
-		if (PrefabUtility.GetPrefabType(rig.gameObject) == PrefabType.PrefabInstance)
-		{
-			PrefabUtility.UnpackPrefabInstance(rig.gameObject, PrefabUnpackMode.Completely, InteractionMode.AutomatedAction);
-			return;
-		}
+		//if (PrefabUtility.GetPrefabType(rig.gameObject) == PrefabType.PrefabInstance)
+		//{
+		//	PrefabUtility.UnpackPrefabInstance(rig.gameObject, PrefabUnpackMode.Completely, InteractionMode.AutomatedAction);
+		//	return;
+		//}
 	}
 
 	public override void OnInspectorGUI()
@@ -173,14 +154,20 @@ public class PlayerRigInspector : Editor
 
 	public void ShowHand(ref bool handBool, InputManager hand)
 	{
-		GUILayout.BeginHorizontal();
+		EditorGUILayout.BeginHorizontal();
 
-		handBool = EditorGUILayout.BeginFoldoutHeaderGroup(handBool, $"{hand.handedness} Hand");
-		EditorGUILayout.EndFoldoutHeaderGroup();
+		bool tempHandBool = EditorGUILayout.Foldout(handBool, $"{hand.handedness} Hand", true);
 
 		MyEditorTools.ShowRefrenceButton(hand.gameObject);
+		GUILayout.Space(5);
 
-		GUILayout.EndHorizontal();
+		EditorGUILayout.EndHorizontal();
+
+		if (handBool != tempHandBool)
+		{
+			Undo.RecordObject(rig, "Toggled hand Foldout");
+			handBool = tempHandBool;
+		}
 
 		if (handBool)
 		{
@@ -198,8 +185,14 @@ public class PlayerRigInspector : Editor
 	public void ShowPlayerComponents()
 	{
 		GUILayout.Space(10f);
-		rig.playerComponentsOpen = EditorGUILayout.BeginFoldoutHeaderGroup(rig.playerComponentsOpen, $"PlayerComponents");
+		bool playerComponentsOpen = EditorGUILayout.BeginFoldoutHeaderGroup(rig.playerComponentsOpen, $"PlayerComponents");
 		EditorGUILayout.EndFoldoutHeaderGroup();
+
+		if (rig.playerComponentsOpen != playerComponentsOpen)
+		{
+			Undo.RecordObject(rig, "Toggled PlayerCompoents Foldout");
+			rig.playerComponentsOpen = playerComponentsOpen;
+		}
 
 		EditorGUI.indentLevel++;
 
@@ -217,12 +210,16 @@ public class PlayerRigInspector : Editor
 				{
 					if (GUILayout.Button($"Add {type}"))
 					{
+						Undo.SetCurrentGroupName($"Added {type} Component");
+						Undo.RecordObject(rig, $"Added {type} Component");
 						var component = PlayerComponentEditor.CreateComponent(type, rig);
 
 						if (component != null)
-							rig.SetPlayerComponentsInRig(component);
+							SetPlayerComponentsInRig(component);
 						else
 							Debug.LogError($"No Component for {type}");
+
+						Undo.CollapseUndoOperations(Undo.GetCurrentGroup());
 					}
 				}
 			}
@@ -230,6 +227,32 @@ public class PlayerRigInspector : Editor
 		}
 
 		EditorGUI.indentLevel--;
+	}
+
+	public void SetPlayerComponentsInRig(PlayerComponent component)
+	{
+		string propertyName = "walk";
+
+		switch (component.type)
+		{
+			case PlayerComponent.ComponentTypes.Walk:
+				propertyName = "walk";
+				break;
+			case PlayerComponent.ComponentTypes.Teleport:
+				propertyName = "teleport";
+				break;
+			case PlayerComponent.ComponentTypes.Rotate:
+				propertyName = "rotate";
+				break;
+			case PlayerComponent.ComponentTypes.Climb:
+				propertyName = "climb";
+				break;
+			case PlayerComponent.ComponentTypes.PhysicalBody:
+				propertyName = "physicalBody";
+				break;
+		}
+		serializedObject.FindProperty(propertyName).objectReferenceValue = component;
+		serializedObject.ApplyModifiedProperties();
 	}
 
 	public bool NullRefrenceRisk()
@@ -248,3 +271,10 @@ public class PlayerRigInspector : Editor
 }
 
 #endif
+
+//GUIStyle windowSkin = new GUIStyle(GUI.skin.window);
+//windowSkin.alignment = TextAnchor.UpperLeft;
+//windowSkin.padding = new RectOffset(15, 0, 0, 0);
+//windowSkin.margin = new RectOffset(0, 0, 0, 0);
+
+//GUILayout.BeginVertical(windowSkin);

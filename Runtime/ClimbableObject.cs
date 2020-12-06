@@ -23,14 +23,14 @@ public class ClimbableObject : MonoBehaviour
 			Debug.LogError("No Player BetterClimb Component");
 
 		thisInteractible = GetComponent<InteractableFacade>();
-		GetComponent<InteractableFacade>().Grabbed.AddListener(Grabed);
-		GetComponent<InteractableFacade>().Ungrabbed.AddListener(UnGrabed);
+		GetComponent<InteractableFacade>().Grabbed.AddListener(Grabbed);
+		GetComponent<InteractableFacade>().Ungrabbed.AddListener(UnGrabbed);
 	}
 
-	public void Grabed(InteractorFacade hand) =>
+	public void Grabbed(InteractorFacade hand) =>
 		climbRef.StartClimbing(thisInteractible, hand, useOffset, useOffsetSec);
 
-	public void UnGrabed(InteractorFacade hand)
+	public void UnGrabbed(InteractorFacade hand)
 	{
 		if (canGetOff)
 			climbRef.StopClimbing(thisInteractible, hand);

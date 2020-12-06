@@ -2317,7 +2317,7 @@ MonoBehaviour:
   Emitted:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 7566968149601785363}
+      - m_Target: {fileID: 3073334282725776570}
         m_MethodName: ApplyInactiveKinematicState
         m_Mode: 1
         m_Arguments:
@@ -3362,7 +3362,7 @@ MonoBehaviour:
   Emitted:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 7566968149601785363}
+      - m_Target: {fileID: 3073334282725776570}
         m_MethodName: NotifyUngrab
         m_Mode: 0
         m_Arguments:
@@ -4843,7 +4843,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7566968149564219666}
-  - component: {fileID: 7566968149564219667}
+  - component: {fileID: 681967659412367760}
   m_Layer: 0
   m_Name: Interactable.GrabLogic
   m_TagString: Untagged
@@ -4868,7 +4868,7 @@ Transform:
   m_Father: {fileID: 7566968149329104879}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &7566968149564219667
+--- !u!114 &681967659412367760
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -4877,14 +4877,15 @@ MonoBehaviour:
   m_GameObject: {fileID: 7566968149564219669}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8314c9a77122ba744ac0a55af02c58b4, type: 3}
+  m_Script: {fileID: 11500000, guid: a74c021bd75b8cb4fb6976fdda3f1010, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   facade: {fileID: 7566968150210048066}
-  primaryAction: {fileID: 7566968149601785363}
+  primaryAction: {fileID: 3073334282725776570}
   secondaryAction: {fileID: 7566968150401471324}
-  grabReceiver: {fileID: 7566968150517960448}
+  grabReceiver: {fileID: 6155858034578257083}
   grabProvider: {fileID: 7566968148708351805}
+  _secondaryAction: {fileID: 7566968150401471324}
 --- !u!1 &7566968149574869570
 GameObject:
   m_ObjectHideFlags: 0
@@ -5044,9 +5045,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7566968149601785362}
-  - component: {fileID: 7566968149601785363}
+  - component: {fileID: 3073334282725776570}
   m_Layer: 0
-  m_Name: Interactable.GrabAction.FollowAction
+  m_Name: Grab.FollowAction
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5070,7 +5071,7 @@ Transform:
   m_Father: {fileID: 7566968148798202840}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &7566968149601785363
+--- !u!114 &3073334282725776570
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -5079,7 +5080,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 7566968149601785365}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: aa6b2e26d85a4f740b961ef57e412d92, type: 3}
+  m_Script: {fileID: 11500000, guid: 7049eec648b95514da27bdc1dab2d4fc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   inputActiveCollisionConsumer: {fileID: 7566968148847961303}
@@ -5102,6 +5103,8 @@ MonoBehaviour:
   precisionCreateContainer: {fileID: 7566968148436733454}
   precisionForceCreateContainer: {fileID: 7566968150394578374}
   orientationLogicContainer: {fileID: 7566968149668599251}
+  _followTracking: 0
+  _grabOffset: 0
 --- !u!1 &7566968149614745737
 GameObject:
   m_ObjectHideFlags: 0
@@ -5800,7 +5803,7 @@ MonoBehaviour:
   Emitted:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 7566968149601785363}
+      - m_Target: {fileID: 3073334282725776570}
         m_MethodName: ApplyActiveKinematicState
         m_Mode: 1
         m_Arguments:
@@ -7080,7 +7083,7 @@ MonoBehaviour:
   Emitted:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 7566968149601785363}
+      - m_Target: {fileID: 3073334282725776570}
         m_MethodName: NotifyGrab
         m_Mode: 0
         m_Arguments:
@@ -7964,6 +7967,8 @@ MonoBehaviour:
   isDriveChild: 0
   isThis: 1
   drive: {fileID: 0}
+  grabSettingsBool: 0
+  eventBool: 0
 --- !u!114 &7566968150210048066
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8031,7 +8036,7 @@ MonoBehaviour:
   collisionNotifier: {fileID: 7566968150210048067}
   activeCollisions: {fileID: 7566968149297339375}
   touchConfiguration: {fileID: 7566968149261149303}
-  grabConfiguration: {fileID: 7566968149564219667}
+  grabConfiguration: {fileID: 681967659412367760}
 --- !u!54 &7566968150210048064
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -9522,7 +9527,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7566968150517960451}
-  - component: {fileID: 7566968150517960448}
+  - component: {fileID: 6155858034578257083}
   m_Layer: 0
   m_Name: Interactable.GrabReceiver
   m_TagString: Untagged
@@ -9547,7 +9552,7 @@ Transform:
   m_Father: {fileID: 7566968149564219666}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &7566968150517960448
+--- !u!114 &6155858034578257083
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -9556,7 +9561,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 7566968150517960450}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4013e20688e192747ae18baff553ede7, type: 3}
+  m_Script: {fileID: 11500000, guid: a119518760581c044b0bb7acd50a17a8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   grabType: 0
@@ -9571,6 +9576,7 @@ MonoBehaviour:
   outputGrabAction: {fileID: 7566968149724557406}
   outputUngrabAction: {fileID: 7566968150539734253}
   outputUngrabOnUntouchAction: {fileID: 7566968149226172388}
+  _grabType: 0
 --- !u!1 &7566968150539734255
 GameObject:
   m_ObjectHideFlags: 0
