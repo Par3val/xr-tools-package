@@ -107,7 +107,7 @@ public class InputMapping : MonoBehaviour
 		Moved2DY = new UnityEventFloat();
 	}
 
-	public void Start()
+	public void Awake()
 	{
 		manager = GetComponentInParent<InputManager>();
 		if (manager && Application.isPlaying)
