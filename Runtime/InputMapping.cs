@@ -80,7 +80,7 @@ public class InputMapping : MonoBehaviour
 
 	public void Setup(string _name = "")
 	{
-		if (string.IsNullOrEmpty(_name))
+		if (!string.IsNullOrEmpty(_name))
 			mapName = _name;
 
 		editorOpen = false;
