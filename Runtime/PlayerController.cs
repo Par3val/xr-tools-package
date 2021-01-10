@@ -11,7 +11,7 @@ public class PlayerController : MonoBehaviour
 	public CapsuleCollider col;
 
 	public float jumpPower = 2.5f;
-
+	public bool useGravity = true;
 	const float headSize = 0.1524f;
 
 	private void Awake()
@@ -36,7 +36,7 @@ public class PlayerController : MonoBehaviour
 
 	public void SetClimb(bool isClimbing)
 	{
-		rb.useGravity = !isClimbing;
+		rb.useGravity = !isClimbing && useGravity;
 		col.isTrigger = isClimbing;
 	}
 
