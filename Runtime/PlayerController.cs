@@ -12,6 +12,7 @@ public class PlayerController : MonoBehaviour
 
 	public float jumpPower = 2.5f;
 	public bool useGravity = true;
+	public bool usePlayerHeight = true;
 	const float headSize = 0.1524f;
 
 	private void Awake()
@@ -30,7 +31,7 @@ public class PlayerController : MonoBehaviour
 		if (rb && col)
 		{
 			col.center = AjustedHeadPos();
-			col.height = rig.alias.HeadsetAlias.transform.localPosition.y + headSize;
+			col.height = usePlayerHeight ? (rig.alias.HeadsetAlias.transform.localPosition.y : Vector3.zero) + headSize;
 		}
 	}
 
