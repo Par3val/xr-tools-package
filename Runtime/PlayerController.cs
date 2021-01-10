@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -30,7 +30,7 @@ public class PlayerController : MonoBehaviour
 	{
 		if (rb && col)
 		{
-			col.center = AjustedHeadPos();
+			col.center = usePlayerHeight ? AjustedHeadPos() : rig.alias.HeadsetAlias.transform.localPosition;
 			col.height = (usePlayerHeight ? rig.alias.HeadsetAlias.transform.localPosition.y : 0) + headSize;
 		}
 	}
