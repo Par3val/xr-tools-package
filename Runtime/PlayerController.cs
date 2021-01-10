@@ -31,7 +31,7 @@ public class PlayerController : MonoBehaviour
 		if (rb && col)
 		{
 			col.center = AjustedHeadPos();
-			col.height = (usePlayerHeight ? rig.alias.HeadsetAlias.transform.localPosition.y : Vector3.zero) + headSize;
+			col.height = (usePlayerHeight ? rig.alias.HeadsetAlias.transform.localPosition.y : 0) + headSize;
 		}
 	}
 
