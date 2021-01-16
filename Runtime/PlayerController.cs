@@ -10,9 +10,10 @@ public class PlayerController : MonoBehaviour
 	[HideInInspector]
 	public CapsuleCollider col;
 
-	public float jumpPower = 2.5f;
 	public bool useGravity = true;
 	public bool usePlayerHeight = true;
+
+	public float jumpPower = 2.5f;
 	const float headSize = 0.1524f;
 
 	private void Awake()
@@ -39,6 +40,7 @@ public class PlayerController : MonoBehaviour
 	{
 		rb.useGravity = !isClimbing && useGravity;
 		col.isTrigger = isClimbing;
+		rb.velocity *= isClimbing ? 0 : 1;
 	}
 
 	Vector3 AjustedHeadPos()
