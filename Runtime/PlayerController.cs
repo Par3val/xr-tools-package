@@ -12,6 +12,7 @@ public class PlayerController : MonoBehaviour
 
 	public bool useGravity = true;
 	public bool usePlayerHeight = true;
+	public bool affectTrigger = true;
 
 	public float jumpPower = 2.5f;
 	const float headSize = 0.1524f;
@@ -39,7 +40,8 @@ public class PlayerController : MonoBehaviour
 	public void SetClimb(bool isClimbing)
 	{
 		rb.useGravity = !isClimbing && useGravity;
-		col.isTrigger = isClimbing;
+		if (affectTrigger)
+			col.isTrigger = isClimbing;
 		rb.velocity *= isClimbing ? 0 : 1;
 	}
 
